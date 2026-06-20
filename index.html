@@ -402,6 +402,7 @@ canvas { max-height: 230px; }
 .tx-meta { font-size: 12px; color: var(--label-4); margin-top: 1px; font-weight: 500; }
 .tx-amount { font-size: 15.5px; font-weight: 700; flex-shrink: 0; letter-spacing: -0.2px; }
 .tx-amount.income { color: var(--green); }
+.tx-amount.loss { color: var(--red); }
 .divider-line { height: 1px; background: var(--separator); margin: 2px 0; }
 
 /* ═══════════════ BUTTONS ═══════════════ */
@@ -528,6 +529,126 @@ canvas { max-height: 230px; }
 .fw-600 { font-weight: 600; }
 .scroll-x { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .scroll-x::-webkit-scrollbar { display: none; }
+
+/* ═══════════════ PREMIUM NET WORTH HERO ═══════════════ */
+.networth-hero {
+  position: relative;
+  border-radius: var(--r-xl);
+  padding: 28px 26px 24px;
+  background: linear-gradient(155deg, #0d0d10 0%, #1c1c22 45%, #2a2a35 100%);
+  color: white;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.networth-hero-glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(139,110,240,0.5), transparent 45%),
+    radial-gradient(circle at 100% 30%, rgba(94,124,226,0.35), transparent 50%),
+    radial-gradient(circle at 60% 110%, rgba(47,179,128,0.22), transparent 55%);
+  filter: blur(2px);
+}
+.networth-hero-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 100% 100% at 50% 0%, black 30%, transparent 80%);
+}
+.networth-badge {
+  width: 44px; height: 44px; border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; backdrop-filter: blur(10px);
+}
+.networth-stats {
+  display: flex; gap: 10px; margin-top: 20px; position: relative; z-index: 2;
+}
+.networth-stat-pill {
+  flex: 1; background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-sm); padding: 10px 12px;
+  backdrop-filter: blur(10px);
+}
+.networth-stat-pill .nsp-label { font-size: 10.5px; opacity: .55; font-weight: 600; margin-bottom: 3px; }
+.networth-stat-pill .nsp-value { font-size: 14.5px; font-weight: 800; letter-spacing: -0.3px; }
+.networth-stat-pill .nsp-value.up { color: #4ade80; }
+.networth-stat-pill .nsp-value.down { color: #fb7185; }
+
+/* ═══════════════ BANK-CARD STYLE ASSET CARDS ═══════════════ */
+.asset-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.bank-card {
+  position: relative;
+  border-radius: 20px;
+  padding: 20px 20px 18px;
+  color: white;
+  overflow: hidden;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: default;
+  transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.bank-card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 16px 34px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.18); }
+.bank-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 110% -10%, rgba(255,255,255,0.25), transparent 50%);
+  pointer-events: none;
+}
+.bank-card-texture {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 36px);
+  pointer-events: none;
+}
+.bank-card-top { display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1; }
+.bank-card-icon { font-size: 22px; opacity: .95; }
+.bank-card-delete {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.2); color: white; border: none;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.bank-card-mid { position: relative; z-index: 1; margin-top: 14px; }
+.bank-card-name { font-size: 12.5px; opacity: .8; font-weight: 600; letter-spacing: 0.2px; }
+.bank-card-value { font-size: 23px; font-weight: 800; letter-spacing: -0.5px; margin-top: 3px; }
+.bank-card-bottom { display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 1; margin-top: 12px; }
+.bank-card-note { font-size: 10.5px; opacity: .65; font-weight: 500; max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bank-card-delta { font-size: 11px; font-weight: 700; }
+.bank-card-delta.up { color: #86efac; }
+.bank-card-delta.down { color: #fda4af; }
+.bank-card-update-btn {
+  margin-top: 12px; width: 100%; padding: 8px; border-radius: 10px;
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.18);
+  color: white; font-size: 12px; font-weight: 700; cursor: pointer;
+  backdrop-filter: blur(6px); position: relative; z-index: 1;
+  transition: background .15s;
+}
+.bank-card-update-btn:hover { background: rgba(255,255,255,0.22); }
+
+/* ═══════════════ CATEGORY DROPDOWN + CUSTOM INPUT ═══════════════ */
+.cat-custom-input { display: none; margin-top: 8px; }
+.cat-custom-input.show { display: block; }
+
+/* ═══════════════ EXPORT PANEL ═══════════════ */
+.export-option {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; border-radius: var(--r-md);
+  background: var(--surface-2); cursor: pointer;
+  transition: all .15s; border: 1px solid transparent;
+}
+.export-option:hover { border-color: var(--separator-strong); transform: translateY(-1px); }
+.export-icon-badge {
+  width: 42px; height: 42px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0;
+}
 
 </style>
 </head>
@@ -689,6 +810,29 @@ canvas { max-height: 230px; }
           <button class="btn btn-danger-text btn-sm" onclick="clearAllData()">清空全部数据</button>
         </div>
       </div>
+
+      <div class="sh"><div class="sh-title" style="font-size:18px">导出数据</div></div>
+      <div class="card glass">
+        <div class="chart-sub" style="margin-bottom:14px">将你的记账与资产数据导出，方便在其他工具中使用或备份</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="export-option" onclick="exportData('csv')">
+            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(47,179,128,.16),rgba(6,182,164,.16))">📊</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700">导出为 CSV</div>
+              <div style="font-size:11.5px;color:var(--label-4)">可直接导入 Excel / Numbers</div>
+            </div>
+            <span style="color:var(--label-4)">›</span>
+          </div>
+          <div class="export-option" onclick="exportData('json')">
+            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(94,124,226,.16),rgba(139,110,240,.16))">🗂️</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700">导出为 JSON</div>
+              <div style="font-size:11.5px;color:var(--label-4)">完整数据备份，含资产与历史快照</div>
+            </div>
+            <span style="color:var(--label-4)">›</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ════════════════ PAGE: ASSETS ════════════════ -->
@@ -698,14 +842,26 @@ canvas { max-height: 230px; }
         <div class="page-subtitle">追踪你的财富版图</div>
       </div>
 
-      <div class="hero-card grad-dark glass">
-        <div class="hero-label">总净资产 · NET WORTH</div>
-        <div class="hero-value" id="totalAssetVal">¥0</div>
-        <div class="hero-sub" id="totalAssetSub">手动更新各资产以计算总值</div>
+      <!-- Premium Net Worth Hero -->
+      <div class="networth-hero">
+        <div class="networth-hero-glow"></div>
+        <div class="networth-hero-grid"></div>
+        <div style="position:relative;z-index:2">
+          <div class="flex-between" style="align-items:flex-start">
+            <div>
+              <div class="hero-label" style="opacity:.55">总净资产 · NET WORTH</div>
+              <div class="hero-value" id="totalAssetVal" style="font-size:44px">¥0</div>
+            </div>
+            <div class="networth-badge">💎</div>
+          </div>
+          <div class="hero-sub" id="totalAssetSub" style="opacity:.55">手动更新各资产以计算总值</div>
+          <div class="networth-stats" id="networthStats"></div>
+        </div>
       </div>
 
+      <!-- Total Asset Timeline (standalone) -->
       <div class="sh">
-        <div class="sh-title" style="font-size:18px">资产走势</div>
+        <div class="sh-title" style="font-size:18px">总资产走势</div>
         <div class="segmented" id="timelineSeg">
           <button class="seg-pill active" data-range="90" onclick="setTimelineRange(90,this)">3月</button>
           <button class="seg-pill" data-range="180" onclick="setTimelineRange(180,this)">6月</button>
@@ -718,9 +874,19 @@ canvas { max-height: 230px; }
           <div class="empty-icon-badge">📈</div>
           <div class="empty-text">更新资产金额后将自动记录时间点<br>积累数据后即可看到走势趋势</div>
         </div>
-        <canvas id="assetTimelineChart" height="100" style="display:none"></canvas>
-        <canvas id="assetBreakdownChart" height="110" style="display:none;margin-top:6px"></canvas>
+        <canvas id="assetTimelineChart" height="90" style="display:none"></canvas>
+      </div>
+
+      <!-- Per-asset breakdown timeline (separate card) -->
+      <div class="sh"><div class="sh-title" style="font-size:18px">各资产明细走势</div></div>
+      <div class="card glass" id="breakdownCard" style="display:none">
+        <div class="chart-sub">每项资产随时间的变化对比</div>
+        <canvas id="assetBreakdownChart" height="130"></canvas>
         <div class="legend-flow" id="timelineLegend"></div>
+      </div>
+      <div class="card glass empty-state" id="breakdownEmpty" style="padding:24px 0">
+        <div class="empty-icon-badge">🧩</div>
+        <div class="empty-text">需要 2 项及以上资产才能显示明细走势对比</div>
       </div>
 
       <div class="grid-2" style="margin-top:14px">
@@ -741,7 +907,7 @@ canvas { max-height: 230px; }
         <div class="sh-title" style="font-size:18px">资产明细</div>
         <button class="sh-action" onclick="openAssetModal()">＋ 添加</button>
       </div>
-      <div class="grid-2" id="assetGrid" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr))">
+      <div class="asset-card-grid" id="assetGrid">
         <div class="empty-state" style="grid-column:1/-1">
           <div class="empty-icon-badge">🏦</div>
           <div class="empty-text">点击「＋ 添加」开始记录资产</div>
@@ -871,7 +1037,11 @@ canvas { max-height: 230px; }
       <button class="seg-pill" style="flex:1" id="segIncome" onclick="setTxType('收入')">收入</button>
     </div>
     <div class="field"><label class="field-label">金额</label><input class="field-input" id="txAmount" type="number" placeholder="0.00" inputmode="decimal"></div>
-    <div class="field"><label class="field-label">类别</label><input class="field-input" id="txCategory" placeholder="如：餐饮、交通、工资" list="catList"><datalist id="catList"></datalist></div>
+    <div class="field">
+      <label class="field-label">类别</label>
+      <select class="field-select" id="txCategorySelect" onchange="onCategorySelectChange()"></select>
+      <input class="field-input cat-custom-input" id="txCategoryCustom" placeholder="输入自定义类别名称">
+    </div>
     <div class="field"><label class="field-label">日期</label><input class="field-input" id="txDate" type="date"></div>
     <div class="field"><label class="field-label">备注（可选）</label><input class="field-input" id="txNote" placeholder="补充说明"></div>
     <div class="btn-row">
@@ -1016,28 +1186,78 @@ function buildTrendChart(txs){
   const ctx = document.getElementById('trendChart');
   if(!txs.length){ ctx.style.display='none'; document.getElementById('trendEmpty').style.display=''; return; }
   ctx.style.display=''; document.getElementById('trendEmpty').style.display='none';
+
+  // ── Choose granularity based on selected period ──
+  // month  → daily buckets (e.g. 6/1, 6/2 ...)
+  // quarter→ weekly buckets
+  // year   → monthly buckets
+  // all    → monthly buckets
+  let granularity = 'month';
+  if(currentPeriod==='month') granularity='day';
+  else if(currentPeriod==='quarter') granularity='week';
+  else granularity='month';
+
   const groups = {};
+  const keyOrder = [];
+  function bucketKey(dateObj){
+    if(granularity==='day') return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth()+1)}-${pad2(dateObj.getDate())}`;
+    if(granularity==='week'){
+      // ISO-like week bucket: year + week number (Sun-start)
+      const first = new Date(dateObj.getFullYear(),0,1);
+      const days = Math.floor((dateObj-first)/86400000);
+      const week = Math.ceil((days+first.getDay()+1)/7);
+      return `${dateObj.getFullYear()}-W${pad2(week)}`;
+    }
+    return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth()+1)}`;
+  }
+  function bucketLabel(key, dateObj){
+    if(granularity==='day') return `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+    if(granularity==='week') return key.split('-W')[1]+'周';
+    return key;
+  }
+
   txs.forEach(t=>{
-    const k = t.date.slice(0,7);
-    if(!groups[k]) groups[k] = {income:0, expense:0};
+    const d = new Date(t.date);
+    const k = bucketKey(d);
+    if(!groups[k]){ groups[k] = { income:0, expense:0, _date:d, _label:bucketLabel(k,d) }; keyOrder.push(k); }
     if(t.type==='收入') groups[k].income += t.amount; else groups[k].expense += t.amount;
   });
-  const labels = Object.keys(groups).sort();
+
+  // If daily granularity, fill in missing days within the month range for a continuous curve
+  let labels, incomeData, expenseData;
+  if(granularity==='day' && keyOrder.length){
+    const sortedKeys = keyOrder.sort();
+    const firstDate = new Date(sortedKeys[0]);
+    const lastDate = new Date(sortedKeys[sortedKeys.length-1]);
+    labels=[]; incomeData=[]; expenseData=[];
+    for(let d=new Date(firstDate); d<=lastDate; d.setDate(d.getDate()+1)){
+      const k = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+      labels.push(`${d.getMonth()+1}/${d.getDate()}`);
+      incomeData.push(groups[k] ? groups[k].income : 0);
+      expenseData.push(groups[k] ? groups[k].expense : 0);
+    }
+  } else {
+    const sortedKeys = keyOrder.sort();
+    labels = sortedKeys.map(k=>groups[k]._label);
+    incomeData = sortedKeys.map(k=>groups[k].income);
+    expenseData = sortedKeys.map(k=>groups[k].expense);
+  }
+
   if(charts.trend) charts.trend.destroy();
   charts.trend = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [
-        { label:'收入', data: labels.map(k=>groups[k].income), borderColor:'#2fb380', backgroundColor:'rgba(47,179,128,.12)', fill:true, tension:.42, pointRadius:4, pointHoverRadius:6, borderWidth:2.5 },
-        { label:'支出', data: labels.map(k=>groups[k].expense), borderColor:'#ef4458', backgroundColor:'rgba(239,68,88,.08)', fill:true, tension:.42, pointRadius:4, pointHoverRadius:6, borderWidth:2.5 }
+        { label:'收入', data: incomeData, borderColor:'#2fb380', backgroundColor:'rgba(47,179,128,.12)', fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:labels.length>20?0:3, pointHoverRadius:6, borderWidth:2.5 },
+        { label:'支出', data: expenseData, borderColor:'#ef4458', backgroundColor:'rgba(239,68,88,.08)', fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:labels.length>20?0:3, pointHoverRadius:6, borderWidth:2.5 }
       ]
     },
     options: {
       responsive:true, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{display:true,position:'top',labels:{font:{size:12,weight:600},boxWidth:10,usePointStyle:true,padding:16}} },
       scales:{
-        x:{ grid:{display:false}, ticks:{font:{size:11}} },
+        x:{ grid:{display:false}, ticks:{font:{size:10.5},maxRotation:0,autoSkip:true,maxTicksLimit:8} },
         y:{ grid:{color:'rgba(120,120,120,.12)'}, ticks:{font:{size:11},callback:v=>'¥'+fmtK(v)} }
       }
     }
@@ -1073,13 +1293,22 @@ const CAT_ICONS = {
 };
 function catIcon(c){ return CAT_ICONS[c] || '💳'; }
 function txHtml(t){
+  const isLoss = t.type==='收入' && t.amount<0;
+  const isGain = t.type==='收入' && t.amount>=0;
+  const sign = isLoss ? '−' : (isGain ? '+' : '−');
+  const amtClass = isGain ? 'income' : (isLoss ? 'loss' : '');
+  const iconBg = isGain
+    ? 'linear-gradient(135deg,rgba(47,179,128,.16),rgba(6,182,164,.16))'
+    : isLoss
+      ? 'linear-gradient(135deg,rgba(239,68,88,.16),rgba(245,166,35,.12))'
+      : 'linear-gradient(135deg,rgba(94,124,226,.14),rgba(139,110,240,.14))';
   return `<div class="tx-row">
-    <div class="tx-icon" style="background:${t.type==='收入'?'linear-gradient(135deg,rgba(47,179,128,.16),rgba(6,182,164,.16))':'linear-gradient(135deg,rgba(94,124,226,.14),rgba(139,110,240,.14))'}">${catIcon(t.category)}</div>
+    <div class="tx-icon" style="background:${iconBg}">${isLoss ? '📉' : catIcon(t.category)}</div>
     <div class="tx-info">
-      <div class="tx-name">${escapeHtml(t.category)}${t.note?' · '+escapeHtml(t.note):''}</div>
+      <div class="tx-name">${escapeHtml(t.category)}${t.note?' · '+escapeHtml(t.note):''}${isLoss?' · 亏损':''}</div>
       <div class="tx-meta">${t.date}</div>
     </div>
-    <div class="tx-amount ${t.type==='收入'?'income':''}">${t.type==='收入'?'+':'−'}¥${fmt(t.amount)}</div>
+    <div class="tx-amount ${amtClass}">${sign}¥${fmt(Math.abs(t.amount))}</div>
   </div>`;
 }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
@@ -1090,11 +1319,24 @@ function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; 
 const ASSET_ICONS = { '现金/储蓄':'🏦','基金/股票':'📈','房产':'🏠','车辆':'🚗','加密货币':'₿','固定资产':'🏗️','其他投资':'💼' };
 function assetIcon(c){ return ASSET_ICONS[c] || '💰'; }
 
+// Distinct gradient per asset category — bank-card aesthetic
+const ASSET_GRADIENTS = {
+  '现金/储蓄': 'linear-gradient(135deg, #2563eb 0%, #1e40af 55%, #172554 100%)',
+  '基金/股票': 'linear-gradient(135deg, #059669 0%, #047857 55%, #064e3b 100%)',
+  '房产':      'linear-gradient(135deg, #d97706 0%, #b45309 55%, #78350f 100%)',
+  '车辆':      'linear-gradient(135deg, #475569 0%, #334155 55%, #1e293b 100%)',
+  '加密货币':  'linear-gradient(135deg, #f59e0b 0%, #ea580c 55%, #7c2d12 100%)',
+  '固定资产':  'linear-gradient(135deg, #7c3aed 0%, #6d28d9 55%, #4c1d95 100%)',
+  '其他投资':  'linear-gradient(135deg, #db2777 0%, #be185d 55%, #831843 100%)'
+};
+function assetGradient(c){ return ASSET_GRADIENTS[c] || 'linear-gradient(135deg, #64748b 0%, #475569 55%, #1e293b 100%)'; }
+
 function renderAssets(){
   const total = assets.reduce((s,a)=>s+a.value,0);
   document.getElementById('totalAssetVal').textContent = '¥'+fmt(total);
   document.getElementById('totalAssetSub').textContent = assets.length ? `共 ${assets.length} 项资产 · 上次更新 ${latestUpdateDate()}` : '手动更新各资产以计算总值';
 
+  renderNetworthStats(total);
   buildAssetTimeline();
 
   if(assets.length){
@@ -1125,17 +1367,54 @@ function renderAssets(){
   grid.innerHTML = assets.map(a=>{
     const prev = getPrevValue(a.id);
     const delta = prev!==null ? a.value-prev : null;
-    const deltaHtml = delta!==null ? `<div class="stat-delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ¥${fmt(Math.abs(delta))}</div>` : '';
-    return `<div class="card glass" style="position:relative">
-      <button onclick="deleteAsset('${a.id}')" style="position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;background:rgba(239,68,88,.12);color:var(--red);border:none;font-size:14px;cursor:pointer">×</button>
-      <div class="stat-icon-badge" style="background:linear-gradient(135deg,rgba(94,124,226,.14),rgba(139,110,240,.14))">${assetIcon(a.category)}</div>
-      <div class="stat-label">${escapeHtml(a.name)}</div>
-      <div class="stat-value">¥${fmt(a.value)}</div>
-      ${deltaHtml}
-      <div style="font-size:11.5px;color:var(--label-4);margin-top:6px;font-weight:500">${a.category}${a.note?' · '+escapeHtml(a.note):''}</div>
-      <button class="btn btn-secondary btn-sm btn-block" style="margin-top:10px" onclick="editAsset('${a.id}')">✏️ 更新金额</button>
+    const deltaHtml = delta!==null
+      ? `<div class="bank-card-delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ¥${fmt(Math.abs(delta))}</div>`
+      : `<div class="bank-card-delta" style="opacity:.5">首次记录</div>`;
+    return `<div class="bank-card" style="background:${assetGradient(a.category)}">
+      <div class="bank-card-texture"></div>
+      <div class="bank-card-top">
+        <div class="bank-card-icon">${assetIcon(a.category)}</div>
+        <button class="bank-card-delete" onclick="deleteAsset('${a.id}')">×</button>
+      </div>
+      <div class="bank-card-mid">
+        <div class="bank-card-name">${escapeHtml(a.name)}</div>
+        <div class="bank-card-value">¥${fmt(a.value)}</div>
+      </div>
+      <div class="bank-card-bottom">
+        <div class="bank-card-note">${escapeHtml(a.category)}${a.note?' · '+escapeHtml(a.note):''}</div>
+        ${deltaHtml}
+      </div>
+      <button class="bank-card-update-btn" onclick="editAsset('${a.id}')">✏️ 更新金额</button>
     </div>`;
   }).join('');
+}
+
+function renderNetworthStats(total){
+  const wrap = document.getElementById('networthStats');
+  if(!assets.length){ wrap.innerHTML=''; return; }
+
+  // month-over-month change from history
+  let momChange = null, momPct = null;
+  if(assetHistory.length>=2){
+    const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth()-1, now.getDate());
+    const past = [...assetHistory].reverse().find(h=>new Date(h.ts)<=oneMonthAgo);
+    if(past){ momChange = total - past.total; momPct = past.total!==0 ? (momChange/past.total)*100 : null; }
+  }
+
+  const cats = {};
+  assets.forEach(a=>{ cats[a.category]=(cats[a.category]||0)+a.value; });
+  const topCat = Object.keys(cats).sort((a,b)=>cats[b]-cats[a])[0];
+
+  const pills = [];
+  pills.push(`<div class="networth-stat-pill"><div class="nsp-label">资产项数</div><div class="nsp-value">${assets.length} 项</div></div>`);
+  if(momChange!==null){
+    pills.push(`<div class="networth-stat-pill"><div class="nsp-label">近30天变化</div><div class="nsp-value ${momChange>=0?'up':'down'}">${momChange>=0?'+':'−'}¥${fmt(Math.abs(momChange))}${momPct!==null?` (${momChange>=0?'+':''}${momPct.toFixed(1)}%)`:''}</div></div>`);
+  } else {
+    pills.push(`<div class="networth-stat-pill"><div class="nsp-label">近30天变化</div><div class="nsp-value" style="opacity:.5">积累中</div></div>`);
+  }
+  pills.push(`<div class="networth-stat-pill"><div class="nsp-label">最大占比</div><div class="nsp-value">${escapeHtml(topCat||'—')}</div></div>`);
+  wrap.innerHTML = pills.join('');
 }
 
 function latestUpdateDate(){
@@ -1152,9 +1431,12 @@ function buildAssetTimeline(){
   const tlCanvas = document.getElementById('assetTimelineChart');
   const bkCanvas = document.getElementById('assetBreakdownChart');
   const empty = document.getElementById('timelineEmpty');
+  const breakdownCard = document.getElementById('breakdownCard');
+  const breakdownEmpty = document.getElementById('breakdownEmpty');
 
   if(!assetHistory.length){
-    tlCanvas.style.display='none'; bkCanvas.style.display='none'; empty.style.display='';
+    tlCanvas.style.display='none'; empty.style.display='';
+    breakdownCard.style.display='none'; breakdownEmpty.style.display='';
     return;
   }
   tlCanvas.style.display=''; empty.style.display='none';
@@ -1172,10 +1454,10 @@ function buildAssetTimeline(){
   if(charts.assetTimeline) charts.assetTimeline.destroy();
   charts.assetTimeline = new Chart(tlCanvas, {
     type:'line',
-    data:{ labels, datasets:[{ label:'总资产', data:totals, borderColor:'#5e7ce2', backgroundColor:'rgba(94,124,226,.14)', fill:true, tension:.42, pointRadius:4, pointHoverRadius:6, borderWidth:2.5 }] },
+    data:{ labels, datasets:[{ label:'总资产', data:totals, borderColor:'#5e7ce2', backgroundColor:'rgba(94,124,226,.14)', fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:hist.length>16?0:4, pointHoverRadius:6, borderWidth:2.5 }] },
     options:{ responsive:true, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)}`}} },
-      scales:{ x:{grid:{display:false},ticks:{font:{size:11}}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:11},callback:v=>'¥'+fmtK(v)}} } }
+      scales:{ x:{grid:{display:false},ticks:{font:{size:11},maxRotation:0,autoSkip:true,maxTicksLimit:6}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:11},callback:v=>'¥'+fmtK(v)}} } }
   });
 
   const allIds = {};
@@ -1184,23 +1466,23 @@ function buildAssetTimeline(){
   const nameMap = {}; assets.forEach(a=>{ nameMap[a.id]=a.name; });
 
   if(ids.length>1){
-    bkCanvas.style.display='';
+    breakdownCard.style.display=''; breakdownEmpty.style.display='none';
     const datasets = ids.map((id,i)=>({
       label: nameMap[id]||id,
       data: hist.map(h=>h.breakdown ? (h.breakdown[id]||0) : 0),
       borderColor: PALETTE[i%PALETTE.length], backgroundColor:'transparent',
-      tension:.42, pointRadius:3, pointHoverRadius:5, borderWidth:1.8
+      tension:.5, cubicInterpolationMode:'monotone', pointRadius:hist.length>16?0:3, pointHoverRadius:5, borderWidth:2
     }));
     if(charts.assetBreakdown) charts.assetBreakdown.destroy();
     charts.assetBreakdown = new Chart(bkCanvas, {
       type:'line', data:{ labels, datasets },
       options:{ responsive:true, interaction:{mode:'index',intersect:false},
         plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: ¥${fmt(c.raw)}`}} },
-        scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:10},callback:v=>'¥'+fmtK(v)}} } }
+        scales:{ x:{grid:{display:false},ticks:{font:{size:10.5},maxRotation:0,autoSkip:true,maxTicksLimit:6}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:10.5},callback:v=>'¥'+fmtK(v)}} } }
     });
     document.getElementById('timelineLegend').innerHTML = ids.map((id,i)=>`<div class="legend-chip"><div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${escapeHtml(nameMap[id]||id)}</div>`).join('');
   } else {
-    bkCanvas.style.display='none';
+    breakdownCard.style.display='none'; breakdownEmpty.style.display='';
     document.getElementById('timelineLegend').innerHTML='';
   }
 }
@@ -1266,23 +1548,63 @@ function saveAssetsData(){ localStorage.setItem('rdstr_assets', JSON.stringify(a
 // ═══════════════════════════════
 //  FAB / QUICK ADD
 // ═══════════════════════════════
+const EXPENSE_CATS = [
+  { v:'Food', label:'🍜 Food 餐饮' },
+  { v:'Shop', label:'🛍️ Shop 购物' },
+  { v:'Parents', label:'👨‍👩‍👧 Parents 父母' },
+  { v:'Car', label:'🚗 Car 车辆' },
+  { v:'Health', label:'🏥 Health 医疗' },
+  { v:'Home', label:'🏠 Home 居家' },
+  { v:'Fun', label:'🎮 Fun 娱乐' },
+  { v:'Travel', label:'✈️ Travel 旅行' },
+  { v:'__custom__', label:'✏️ 自定义…' }
+];
+const INCOME_CATS = [
+  { v:'Wage', label:'💼 Wage 工资' },
+  { v:'兼职', label:'🖥️ 兼职' },
+  { v:'红包', label:'🧧 红包' },
+  { v:'理财', label:'📈 理财（可为负数）' },
+  { v:'__custom__', label:'✏️ 自定义…' }
+];
+
 function openAddChoice(){ document.getElementById('choiceModal').classList.add('open'); }
 function closeChoiceModal(e){ if(!e || e.target===document.getElementById('choiceModal')) document.getElementById('choiceModal').classList.remove('open'); }
+
+function populateCategorySelect(){
+  const list = quickTxType==='支出' ? EXPENSE_CATS : INCOME_CATS;
+  const sel = document.getElementById('txCategorySelect');
+  sel.innerHTML = list.map(c=>`<option value="${c.v}">${c.label}</option>`).join('');
+  onCategorySelectChange();
+}
+function onCategorySelectChange(){
+  const sel = document.getElementById('txCategorySelect');
+  const customInput = document.getElementById('txCategoryCustom');
+  if(sel.value==='__custom__'){
+    customInput.classList.add('show');
+    customInput.focus();
+  } else {
+    customInput.classList.remove('show');
+  }
+}
+function getSelectedCategory(){
+  const sel = document.getElementById('txCategorySelect');
+  if(sel.value==='__custom__'){
+    return document.getElementById('txCategoryCustom').value.trim();
+  }
+  return sel.value;
+}
 
 function setTxType(t){
   quickTxType = t;
   document.getElementById('segExpense').classList.toggle('active', t==='支出');
   document.getElementById('segIncome').classList.toggle('active', t==='收入');
-  refreshCatSuggestions();
-}
-function refreshCatSuggestions(){
-  const cats = new Set(transactions.filter(t=>t.type===quickTxType).map(t=>t.category));
-  document.getElementById('catList').innerHTML = [...cats].map(c=>`<option value="${escapeHtml(c)}">`).join('');
+  // Allow negative amounts only for 理财 (investment) income category
+  populateCategorySelect();
 }
 function openTxModal(){
   quickTxType='支出'; setTxType('支出');
   document.getElementById('txAmount').value='';
-  document.getElementById('txCategory').value='';
+  document.getElementById('txCategoryCustom').value='';
   document.getElementById('txNote').value='';
   const today = new Date();
   document.getElementById('txDate').value = `${today.getFullYear()}-${pad2(today.getMonth()+1)}-${pad2(today.getDate())}`;
@@ -1290,13 +1612,20 @@ function openTxModal(){
 }
 function closeTxModal(e){ if(!e || e.target===document.getElementById('txModal')) document.getElementById('txModal').classList.remove('open'); }
 function saveQuickTx(){
-  const amount = parseFloat(document.getElementById('txAmount').value);
-  const category = document.getElementById('txCategory').value.trim();
+  let amount = parseFloat(document.getElementById('txAmount').value);
+  const category = getSelectedCategory();
   const date = document.getElementById('txDate').value;
   const note = document.getElementById('txNote').value.trim();
-  if(!amount || amount<=0){ showToast('⚠️ 请填写有效金额'); return; }
+
+  if(isNaN(amount) || amount===0){ showToast('⚠️ 请填写有效金额'); return; }
   if(!category){ showToast('⚠️ 请填写类别'); return; }
   if(!date){ showToast('⚠️ 请选择日期'); return; }
+
+  // 理财 (investment) income can be negative (representing a loss). All other
+  // categories are stored as positive magnitudes — direction is carried by `type`.
+  const allowsNegative = (quickTxType==='收入' && category==='理财');
+  if(!allowsNegative) amount = Math.abs(amount);
+
   const t = { id:'t'+Date.now()+Math.random(), date, type:quickTxType, amount, category, note };
   if(transactions.some(x=>txFingerprint(x)===txFingerprint(t))){
     showToast('⚠️ 该记录已存在，未重复添加');
@@ -1413,8 +1742,22 @@ function parseRowMapped(cols, idx){
   else if(typeRaw && /支/.test(typeRaw)) type='支出';
   else type = amount<0 ? '支出' : '收入';
 
-  amount = Math.abs(amount);
-  if(amount<=0) return null;
+  // ── Negative-amount handling ──
+  // For 支出 (expense) rows, the sign is just a legacy "minus = money out"
+  // convention from the source spreadsheet — always store as a positive magnitude.
+  // For 收入 (income) rows, a negative amount can be a *real* investment loss
+  // (e.g. 理财/Investment category showing -500). We preserve the sign only
+  // for that category; any other income category with a stray negative is
+  // treated as the same legacy minus-sign convention and made positive.
+  const isInvestmentCategory = /理财|投资|invest/i.test(category);
+  if(type==='支出'){
+    amount = Math.abs(amount);
+  } else if(type==='收入' && !isInvestmentCategory){
+    amount = Math.abs(amount);
+  }
+  // else: 收入 + investment category → keep sign as-is (may be negative = loss)
+
+  if(amount===0) return null;
 
   return { id:'t'+Date.now()+Math.random()+Math.random(), date, type, amount, category:category||'其他', note:note||'' };
 }
@@ -1490,6 +1833,62 @@ function clearAllData(){
   refreshOverview();
 }
 
+// ═══════════════════════════════
+//  EXPORT
+// ═══════════════════════════════
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function csvEscape(v){
+  v = String(v ?? '');
+  if(/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+  return v;
+}
+function exportData(format){
+  if(!transactions.length && !assets.length){
+    showToast('⚠️ 暂无数据可导出');
+    return;
+  }
+  const today = new Date();
+  const stamp = `${today.getFullYear()}${pad2(today.getMonth()+1)}${pad2(today.getDate())}`;
+
+  if(format==='csv'){
+    // Transactions CSV
+    const txHeader = ['时间','收支','类别','金额','备注'];
+    const txRows = [...transactions].sort((a,b)=>new Date(a.date)-new Date(b.date))
+      .map(t=>[t.date, t.type, t.category, t.amount, t.note||''].map(csvEscape).join(','));
+    const txCsv = '\uFEFF' + [txHeader.join(','), ...txRows].join('\n');
+    downloadFile(`Roadster_记账数据_${stamp}.csv`, txCsv, 'text/csv;charset=utf-8');
+
+    // Assets CSV (separate file, slight delay so both downloads fire)
+    if(assets.length){
+      setTimeout(()=>{
+        const assetHeader = ['资产名称','类别','金额','备注','创建时间'];
+        const assetRows = assets.map(a=>[a.name, a.category, a.value, a.note||'', a.createdAt||''].map(csvEscape).join(','));
+        const assetCsv = '\uFEFF' + [assetHeader.join(','), ...assetRows].join('\n');
+        downloadFile(`Roadster_资产数据_${stamp}.csv`, assetCsv, 'text/csv;charset=utf-8');
+      }, 400);
+    }
+    showToast('✅ 正在导出 CSV 文件…');
+  } else if(format==='json'){
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      app: 'Roadster · Personal Finance Copilot',
+      transactions,
+      assets,
+      assetHistory
+    };
+    downloadFile(`Roadster_完整备份_${stamp}.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+    showToast('✅ 已导出完整数据备份');
+  }
+}
+
 function loadSampleData(){
   document.getElementById('pasteData').value = `2025-01-05\t收入\t12000\t工资\t1月薪资
 2025-01-08\t支出\t3200\t房租\t1月房租
@@ -1523,7 +1922,10 @@ function loadSampleData(){
 // ═══════════════════════════════
 function buildPie(canvasId, data, legendId){
   const ctx = document.getElementById(canvasId);
-  const keys = Object.keys(data);
+  // Doughnut/pie slices can't represent negative magnitudes (e.g. an investment
+  // loss recorded as negative income) — exclude them here; the loss is still
+  // fully reflected in the income/expense totals and trend charts elsewhere.
+  const keys = Object.keys(data).filter(k => data[k] > 0);
   if(!keys.length){ ctx.style.display='none'; document.getElementById(legendId).innerHTML='<div style="font-size:12px;color:var(--label-4)">暂无数据</div>'; return; }
   ctx.style.display='';
   if(charts[canvasId]) charts[canvasId].destroy();
