@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Roadster · 个人财富驾驶舱</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<!-- Firebase SDK — ES Module CDN (v12) -->
+<script type="importmap">
+{
+  "imports": {
+    "firebase/app":          "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js",
+    "firebase/auth":         "https://www.gstatic.com/firebasejs/11.9.0/firebase-auth.js",
+    "firebase/firestore":    "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js"
+  }
+}
+</script>
 <style>
 /* ═══════════════════════════════════════════════
    ROADSTER · Personal Finance Copilot
@@ -27,27 +38,31 @@
   --separator: rgba(60,60,67,0.12);
   --separator-strong: rgba(60,60,67,0.2);
 
-  /* ── Accent gradients (signature) ── */
-  --grad-primary: linear-gradient(135deg, #6a7cf0 0%, #9b6ef3 50%, #e0699e 100%);
-  --grad-blue: linear-gradient(135deg, #4facfe 0%, #6a7cf0 100%);
-  --grad-green: linear-gradient(135deg, #34d399 0%, #06b6a4 100%);
-  --grad-red: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
-  --grad-amber: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  --grad-purple: linear-gradient(135deg, #a78bfa 0%, #7c5cf0 100%);
-  --grad-dark: linear-gradient(135deg, #1c1c1e 0%, #3a3a3c 60%, #4a4a4d 100%);
+  /* ── System accent colors (Apple HIG-aligned) ── */
+  --blue: #007aff;
+  --green: #34c759;
+  --red: #ff3b30;
+  --amber: #ff9500;
+  --purple: #af52de;
+  --pink: #ff2d55;
+  --indigo: #5856d6;
+  --teal: #5ac8fa;
+  --mint: #00c7be;
 
-  --blue: #5e7ce2;
-  --green: #2fb380;
-  --red: #ef4458;
-  --amber: #f5a623;
-  --purple: #8b6ef0;
-  --pink: #e0699e;
+  /* ── Accent gradients (signature, derived from system colors) ── */
+  --grad-primary: linear-gradient(135deg, #5e7ce6 0%, #af52de 52%, #ff2d77 100%);
+  --grad-blue: linear-gradient(135deg, #5ac8fa 0%, #007aff 100%);
+  --grad-green: linear-gradient(135deg, #30d989 0%, #00c7be 100%);
+  --grad-red: linear-gradient(135deg, #ff6961 0%, #ff3b30 100%);
+  --grad-amber: linear-gradient(135deg, #ffc14d 0%, #ff9500 100%);
+  --grad-purple: linear-gradient(135deg, #c084fc 0%, #5856d6 100%);
+  --grad-dark: linear-gradient(135deg, #1c1c1e 0%, #353538 55%, #46464a 100%);
 
   --shadow-sm: 0 1px 3px rgba(28,28,30,0.06), 0 1px 2px rgba(28,28,30,0.04);
   --shadow-md: 0 4px 16px rgba(28,28,30,0.08), 0 2px 6px rgba(28,28,30,0.04);
   --shadow-lg: 0 12px 36px rgba(28,28,30,0.12), 0 4px 12px rgba(28,28,30,0.06);
-  --shadow-glow-blue: 0 8px 24px rgba(94,124,226,0.35);
-  --shadow-glow-green: 0 8px 24px rgba(47,179,128,0.3);
+  --shadow-glow-blue: 0 8px 24px rgba(0,122,255,0.32);
+  --shadow-glow-green: 0 8px 24px rgba(52,199,89,0.28);
 
   --r-xs: 10px;
   --r-sm: 14px;
@@ -63,7 +78,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg-canvas: #000000;
     --bg-canvas-2: #0a0a0c;
     --surface: rgba(28,28,30,0.68);
@@ -80,8 +95,106 @@
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
     --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
     --shadow-lg: 0 12px 36px rgba(0,0,0,0.45);
+    --shadow-glow-blue: 0 8px 24px rgba(10,132,255,0.4);
+    --shadow-glow-green: 0 8px 24px rgba(48,209,88,0.35);
+    /* Apple HIG: dark-mode system colors are brighter/more saturated */
+    --blue: #0a84ff;
+    --green: #30d158;
+    --red: #ff453a;
+    --amber: #ff9f0a;
+    --purple: #bf5af2;
+    --pink: #ff375f;
+    --indigo: #5e5ce6;
+    --teal: #64d2ff;
+    --mint: #66d4cf;
+    --grad-primary: linear-gradient(135deg, #5e7ce6 0%, #bf5af2 52%, #ff375f 100%);
+    --grad-blue: linear-gradient(135deg, #64d2ff 0%, #0a84ff 100%);
+    --grad-green: linear-gradient(135deg, #30d989 0%, #66d4cf 100%);
+    --grad-red: linear-gradient(135deg, #ff6961 0%, #ff453a 100%);
+    --grad-amber: linear-gradient(135deg, #ffc14d 0%, #ff9f0a 100%);
+    --grad-purple: linear-gradient(135deg, #c084fc 0%, #5e5ce6 100%);
   }
 }
+
+/* Manual theme override — takes precedence over system preference */
+:root[data-theme="dark"] {
+  --bg-canvas: #000000;
+  --bg-canvas-2: #0a0a0c;
+  --surface: rgba(28,28,30,0.68);
+  --surface-solid: #1c1c1e;
+  --surface-2: rgba(44,44,46,0.55);
+  --glass-bar: rgba(28,28,30,0.58);
+  --glass-bar-border: rgba(255,255,255,0.08);
+  --label: #f5f5f7;
+  --label-2: #d1d1d6;
+  --label-3: #9b9ba1;
+  --label-4: #6e6e73;
+  --separator: rgba(255,255,255,0.1);
+  --separator-strong: rgba(255,255,255,0.16);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+  --shadow-lg: 0 12px 36px rgba(0,0,0,0.45);
+  --shadow-glow-blue: 0 8px 24px rgba(10,132,255,0.4);
+  --shadow-glow-green: 0 8px 24px rgba(48,209,88,0.35);
+  --blue: #0a84ff;
+  --green: #30d158;
+  --red: #ff453a;
+  --amber: #ff9f0a;
+  --purple: #bf5af2;
+  --pink: #ff375f;
+  --indigo: #5e5ce6;
+  --teal: #64d2ff;
+  --mint: #66d4cf;
+  --grad-primary: linear-gradient(135deg, #5e7ce6 0%, #bf5af2 52%, #ff375f 100%);
+  --grad-blue: linear-gradient(135deg, #64d2ff 0%, #0a84ff 100%);
+  --grad-green: linear-gradient(135deg, #30d989 0%, #66d4cf 100%);
+  --grad-red: linear-gradient(135deg, #ff6961 0%, #ff453a 100%);
+  --grad-amber: linear-gradient(135deg, #ffc14d 0%, #ff9f0a 100%);
+  --grad-purple: linear-gradient(135deg, #c084fc 0%, #5e5ce6 100%);
+}
+:root[data-theme="light"] {
+  --bg-canvas: #f2f1ec;
+  --bg-canvas-2: #e9e7e0;
+  --surface: rgba(255,255,255,0.72);
+  --surface-solid: #ffffff;
+  --surface-2: rgba(255,255,255,0.5);
+  --glass-bar: rgba(255,255,255,0.62);
+  --glass-bar-border: rgba(255,255,255,0.5);
+  --label: #1c1c1e;
+  --label-2: #3a3a3c;
+  --label-3: #6b6b6f;
+  --label-4: #98989d;
+  --separator: rgba(60,60,67,0.12);
+  --separator-strong: rgba(60,60,67,0.2);
+  --shadow-sm: 0 1px 3px rgba(28,28,30,0.06), 0 1px 2px rgba(28,28,30,0.04);
+  --shadow-md: 0 4px 16px rgba(28,28,30,0.08), 0 2px 6px rgba(28,28,30,0.04);
+  --shadow-lg: 0 12px 36px rgba(28,28,30,0.12), 0 4px 12px rgba(28,28,30,0.06);
+  --shadow-glow-blue: 0 8px 24px rgba(0,122,255,0.32);
+  --shadow-glow-green: 0 8px 24px rgba(52,199,89,0.28);
+  /* Apple HIG: light-mode system colors must be re-declared here, otherwise
+     switching dark → light leaves the brighter dark-mode accent colors
+     (e.g. --blue: #0a84ff) leaking into light mode since CSS custom
+     properties are inherited and only overridden where explicitly set. */
+  --blue: #007aff;
+  --green: #34c759;
+  --red: #ff3b30;
+  --amber: #ff9500;
+  --purple: #af52de;
+  --pink: #ff2d55;
+  --indigo: #5856d6;
+  --teal: #5ac8fa;
+  --mint: #00c7be;
+  --grad-primary: linear-gradient(135deg, #5e7ce6 0%, #af52de 52%, #ff2d77 100%);
+  --grad-blue: linear-gradient(135deg, #5ac8fa 0%, #007aff 100%);
+  --grad-green: linear-gradient(135deg, #30d989 0%, #00c7be 100%);
+  --grad-red: linear-gradient(135deg, #ff6961 0%, #ff3b30 100%);
+  --grad-amber: linear-gradient(135deg, #ffc14d 0%, #ff9500 100%);
+  --grad-purple: linear-gradient(135deg, #c084fc 0%, #5856d6 100%);
+}
+
+html { transition: background-color .35s ease; }
+body { transition: background-color .35s ease; }
+:root { transition: none; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -102,12 +215,18 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  body {
+  :root:not([data-theme]) body {
     background-image:
       radial-gradient(ellipse 800px 500px at 15% -10%, rgba(106,124,240,0.22), transparent 60%),
       radial-gradient(ellipse 700px 600px at 110% 10%, rgba(224,105,158,0.18), transparent 55%),
       radial-gradient(ellipse 900px 700px at 50% 100%, rgba(47,179,128,0.1), transparent 50%);
   }
+}
+:root[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 800px 500px at 15% -10%, rgba(106,124,240,0.22), transparent 60%),
+    radial-gradient(ellipse 700px 600px at 110% 10%, rgba(224,105,158,0.18), transparent 55%),
+    radial-gradient(ellipse 900px 700px at 50% 100%, rgba(47,179,128,0.1), transparent 50%);
 }
 
 a { color: inherit; text-decoration: none; }
@@ -124,8 +243,9 @@ input, select, textarea { font-family: inherit; }
   box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 @media (prefers-color-scheme: dark) {
-  .glass { box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.06); }
+  :root:not([data-theme]) .glass { box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.06); }
 }
+:root[data-theme="dark"] .glass { box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.06); }
 
 .glass-bar {
   background: var(--glass-bar);
@@ -336,6 +456,17 @@ input, select, textarea { font-family: inherit; }
 }
 .hero-card.grad-dark { background: var(--grad-dark); }
 .hero-card.grad-primary { background: var(--grad-primary); }
+.hero-card.grad-red {
+  background: linear-gradient(155deg, #3a0d10 0%, #8a1722 45%, #d6334a 100%);
+}
+.hero-card.grad-red::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 15% 0%, rgba(255,99,99,0.45), transparent 45%),
+              radial-gradient(circle at 100% 30%, rgba(255,59,48,0.3), transparent 50%);
+  filter: blur(2px);
+  pointer-events: none;
+}
 .hero-card::after {
   content: '';
   position: absolute; inset: 0;
@@ -380,6 +511,19 @@ input, select, textarea { font-family: inherit; }
 .chart-title { font-size: 15.5px; font-weight: 700; margin-bottom: 2px; }
 .chart-sub { font-size: 12px; color: var(--label-4); margin-bottom: 14px; font-weight: 500; }
 canvas { max-height: 230px; }
+
+/* Trend / timeline line charts need more vertical room, especially on mobile
+   where the container is narrow (single column) and a squashed line chart
+   becomes unreadable. Pie/donut charts should stay compact regardless. */
+.chart-trend-wrap { position: relative; height: 220px; }
+.chart-trend-wrap canvas { max-height: none !important; }
+.chart-pie-wrap { position: relative; height: 170px; max-width: 220px; margin: 0 auto; }
+.chart-pie-wrap canvas { max-height: none !important; }
+
+@media (max-width: 700px) {
+  .chart-trend-wrap { height: 260px; }
+  .chart-pie-wrap { height: 150px; max-width: 190px; }
+}
 
 .legend-flow { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; }
 .legend-chip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--label-3); font-weight: 600; }
@@ -650,6 +794,287 @@ canvas { max-height: 230px; }
   display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0;
 }
 
+/* ═══════════════ THEME + LANGUAGE TOGGLE ═══════════════ */
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid var(--separator);
+  cursor: pointer; font-size: 16px; transition: all .2s;
+  color: var(--label);
+}
+.icon-btn:hover { background: var(--surface-solid); transform: scale(1.05); }
+.icon-btn:active { transform: scale(0.94); }
+
+.settings-row { display: flex; align-items: center; gap: 8px; }
+
+.theme-toggle {
+  display: flex; padding: 3px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--separator);
+  gap: 2px;
+}
+.theme-toggle button {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: transparent; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--label-3); transition: all .2s;
+}
+.theme-toggle button.active { background: var(--surface-solid); color: var(--label); box-shadow: var(--shadow-sm); }
+
+.lang-toggle {
+  padding: 7px 14px; border-radius: var(--r-pill);
+  background: var(--surface-2); border: 1px solid var(--separator);
+  cursor: pointer; font-size: 12.5px; font-weight: 700;
+  color: var(--label-2); transition: all .2s;
+}
+.lang-toggle:hover { background: var(--surface-solid); }
+
+/* Mobile settings access via a small floating pill near top */
+.mobile-settings-bar {
+  display: none;
+  position: sticky; top: 0; z-index: 190;
+  padding: 10px 16px 4px;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (max-width: 859px) {
+  .mobile-settings-bar { display: flex; }
+}
+
+/* ═══════════════ QUICK-ADD TX SHEET: AMOUNT KEYPAD ═══════════════ */
+.tx-sheet { padding-top: 18px; }
+
+.amount-display {
+  text-align: center;
+  padding: 18px 0 22px;
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+  display: flex; align-items: baseline; justify-content: center; gap: 2px;
+}
+.amount-currency { font-size: 26px; font-weight: 700; opacity: .5; margin-right: 2px; }
+.amount-cursor {
+  display: inline-block; font-weight: 300; opacity: .35;
+  animation: blink-cursor 1.1s step-start infinite;
+  margin-left: 2px;
+}
+@keyframes blink-cursor { 50% { opacity: 0; } }
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.keypad-btn {
+  height: 52px;
+  border-radius: var(--r-sm);
+  border: none;
+  background: var(--surface-2);
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--label);
+  cursor: pointer;
+  transition: all .12s;
+  font-variant-numeric: tabular-nums;
+}
+.keypad-btn:active { background: var(--separator-strong); transform: scale(0.95); }
+.keypad-del { font-size: 18px; color: var(--red); }
+
+/* ═══════════════ CATEGORY ICON GRID ═══════════════ */
+.cat-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+.cat-icon-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 12px 4px 9px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+}
+.cat-icon-item:active { transform: scale(0.94); }
+.cat-icon-item.selected {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 12%, var(--surface-2));
+}
+.cat-icon-circle {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  background: var(--surface-solid);
+}
+.cat-icon-item.selected .cat-icon-circle {
+  background: var(--blue);
+}
+.cat-icon-label {
+  font-size: 10.5px; font-weight: 600; color: var(--label-3);
+  text-align: center; line-height: 1.2;
+}
+.cat-icon-item.selected .cat-icon-label { color: var(--blue); font-weight: 700; }
+
+/* ═══════════════ ASSET NAME-INDEX GROUPING (contacts-style) ═══════════════ */
+.asset-letter-group { margin-bottom: 22px; }
+.asset-letter-header {
+  font-size: 13px; font-weight: 800; color: var(--label-3);
+  margin-bottom: 10px; padding-left: 2px;
+  letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 8px;
+}
+.asset-letter-header::after {
+  content: ''; flex: 1; height: 1px; background: var(--separator);
+}
+
+/* Name-first bank card variant */
+.bank-card-monogram {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800;
+  backdrop-filter: blur(6px);
+}
+.bank-card-name-lg {
+  font-size: 16px; font-weight: 800; letter-spacing: -0.2px;
+  margin-bottom: 4px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ═══════════════ ASSET CARD SPARKLINE ═══════════════ */
+.bank-card-mid-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 8px;
+}
+.bank-card-spark-wrap {
+  flex-shrink: 0; opacity: 0.92;
+  padding-top: 2px;
+}
+.bank-card-spark { display: block; }
+
+/* ═══════════════════ CLICKABLE TX ROW ═══════════════════ */
+.tx-row-clickable { cursor: pointer; }
+.tx-row-clickable:active { background: var(--separator); }
+
+/* ═══════════════════ TRANSACTION DETAIL CARD ═══════════════════ */
+.tx-detail-sheet { padding: 0; overflow: hidden; }
+.tx-detail-sheet .sheet-handle { margin: 14px auto 0; position: relative; z-index: 2; }
+
+.tx-detail-header {
+  padding: 38px 24px 28px;
+  text-align: center;
+  color: white;
+  position: relative;
+  margin-top: -14px;
+}
+.tx-detail-icon {
+  width: 56px; height: 56px; border-radius: 18px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin: 0 auto 12px;
+  backdrop-filter: blur(8px);
+}
+.tx-detail-type {
+  font-size: 13px; font-weight: 700; opacity: 0.85;
+  letter-spacing: 0.3px; margin-bottom: 6px;
+}
+.tx-detail-amount {
+  font-size: 36px; font-weight: 800; letter-spacing: -1px;
+}
+
+.tx-detail-rows {
+  padding: 20px 22px 4px;
+}
+.tx-detail-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 13px 0; border-bottom: 1px solid var(--separator);
+  gap: 16px;
+}
+.tx-detail-row:last-child { border-bottom: none; }
+.tx-detail-label {
+  font-size: 13px; color: var(--label-3); font-weight: 600; flex-shrink: 0;
+}
+.tx-detail-value {
+  font-size: 14px; color: var(--label); font-weight: 600; text-align: right;
+  word-break: break-word;
+}
+
+.tx-detail-sheet .btn-row { padding: 4px 22px 22px; margin-top: 8px; }
+
+/* ═══════════════ AUTH MODAL ═══════════════ */
+.auth-sheet { max-height: 92vh; overflow-y: auto; }
+.auth-logo {
+  text-align: center; margin-bottom: 22px;
+}
+.auth-mode-desc { font-size: 13px; color: var(--label-3); margin-top: 4px; font-weight: 500; }
+.auth-error {
+  font-size: 13px; color: var(--red); font-weight: 600;
+  min-height: 0; margin-bottom: 0; padding: 0;
+  transition: all .2s;
+}
+.auth-error.show { margin-bottom: 12px; padding: 10px 14px; background: rgba(255,59,48,.1); border-radius: var(--r-xs); }
+.auth-link {
+  display: block; width: 100%; text-align: center; padding: 10px;
+  background: none; border: none; font-size: 13px; color: var(--blue);
+  cursor: pointer; font-weight: 600; margin-top: 6px;
+}
+
+/* Auth user card (logged in state) */
+.auth-user-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px; background: var(--surface-2);
+  border-radius: var(--r-md); margin-bottom: 14px;
+}
+.auth-avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--grad-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: white; flex-shrink: 0;
+}
+.auth-user-info .auth-user-name { font-size: 15px; font-weight: 700; }
+.auth-user-info .auth-user-email { font-size: 12px; color: var(--label-4); margin-top: 2px; }
+
+/* Sync status */
+.sync-status-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: var(--surface-2);
+  border-radius: var(--r-xs); font-size: 12.5px; font-weight: 600;
+}
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
+  display: inline-block;
+}
+.sync-dot.synced { background: var(--green); }
+.sync-dot.pending { background: var(--amber); animation: pulse-dot 1.2s ease-in-out infinite; }
+.sync-dot.error { background: var(--red); }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.8); }
+}
+
+/* Persistent sync banner below nav/settings bar */
+.sync-banner {
+  display: none;
+  position: fixed; top: 58px; left: 50%; transform: translateX(-50%);
+  background: rgba(28,28,30,.88); color: white;
+  padding: 7px 18px; border-radius: var(--r-pill);
+  font-size: 12px; font-weight: 600;
+  backdrop-filter: blur(16px); z-index: 180;
+  white-space: nowrap; box-shadow: var(--shadow-md);
+}
+.sync-banner.show { display: block; }
+
+/* Loading spinner for auth submit */
+.btn-loading { opacity: .7; pointer-events: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin .8s linear infinite; }
+
 </style>
 </head>
 <body>
@@ -663,18 +1088,41 @@ canvas { max-height: 230px; }
         <div class="brand-mark">R</div>
         <div class="brand-text">
           <span class="brand-name">Roadster</span>
-          <span class="brand-sub">PERSONAL FINANCE COPILOT</span>
+          <span class="brand-sub" data-i18n="brandSub">PERSONAL FINANCE COPILOT</span>
         </div>
       </div>
       <nav class="topnav" id="topNav">
-        <button class="topnav-item active" data-page="overview" onclick="switchPage('overview')"><span>🏠</span>概览</button>
-        <button class="topnav-item" data-page="transactions" onclick="switchPage('transactions')"><span>🧾</span>记账</button>
-        <button class="topnav-item" data-page="assets" onclick="switchPage('assets')"><span>🏦</span>资产</button>
-        <button class="topnav-item" data-page="analysis" onclick="switchPage('analysis')"><span>🧭</span>分析</button>
+        <button class="topnav-item active" data-page="overview" onclick="switchPage('overview')"><span>🏠</span><span data-i18n="navOverview">概览</span></button>
+        <button class="topnav-item" data-page="transactions" onclick="switchPage('transactions')"><span>🧾</span><span data-i18n="navTransactions">记账</span></button>
+        <button class="topnav-item" data-page="assets" onclick="switchPage('assets')"><span>🏦</span><span data-i18n="navAssets">资产</span></button>
+        <button class="topnav-item" data-page="analysis" onclick="switchPage('analysis')"><span>🧭</span><span data-i18n="navAnalysis">分析</span></button>
       </nav>
-      <button class="btn btn-primary btn-sm" onclick="openAddChoice()">＋ 新增</button>
+      <div class="settings-row">
+        <div class="theme-toggle" id="themeToggleDesktop">
+          <button data-theme-opt="light" onclick="setTheme('light')" title="浅色模式">☀️</button>
+          <button data-theme-opt="dark" onclick="setTheme('dark')" title="深色模式">🌙</button>
+        </div>
+        <button class="lang-toggle" onclick="toggleLang()" id="langBtnDesktop">EN</button>
+        <!-- Auth status — populated by Firebase onAuthStateChanged -->
+        <div id="authBtnDesktop">
+          <button class="btn btn-secondary btn-sm" onclick="openAuthModal()">🔑 登录</button>
+        </div>
+        <button class="btn btn-primary btn-sm" id="topAddBtn" onclick="contextAddAction()">＋ <span data-i18n="addBtn">新增</span></button>
+      </div>
     </div>
   </header>
+
+  <!-- ═══════ MOBILE SETTINGS BAR ═══════ -->
+  <div class="mobile-settings-bar">
+    <div class="theme-toggle" id="themeToggleMobile">
+      <button data-theme-opt="light" onclick="setTheme('light')" title="浅色模式">☀️</button>
+      <button data-theme-opt="dark" onclick="setTheme('dark')" title="深色模式">🌙</button>
+    </div>
+    <button class="lang-toggle" onclick="toggleLang()" id="langBtnMobile">EN</button>
+    <div id="authBtnMobile">
+      <button class="icon-btn" onclick="openAuthModal()" title="登录">🔑</button>
+    </div>
+  </div>
 
   <!-- ═══════ MAIN CONTENT ═══════ -->
   <main class="main" id="mainContent">
@@ -686,22 +1134,22 @@ canvas { max-height: 230px; }
           <span style="font-size:26px">👋</span>
           <div>
             <div class="page-title" id="greetingText">早上好</div>
-            <div class="page-subtitle">这是你的财务总览</div>
+            <div class="page-subtitle" data-i18n="overviewSubtitle">这是你的财务总览</div>
           </div>
         </div>
       </div>
 
       <div class="flex-between" style="margin-bottom:14px">
         <div class="segmented" id="periodSeg">
-          <button class="seg-pill active" data-period="month" onclick="setPeriod('month',this)">本月</button>
-          <button class="seg-pill" data-period="quarter" onclick="setPeriod('quarter',this)">本季</button>
-          <button class="seg-pill" data-period="year" onclick="setPeriod('year',this)">今年</button>
-          <button class="seg-pill" data-period="all" onclick="setPeriod('all',this)">全部</button>
+          <button class="seg-pill active" data-period="month" onclick="setPeriod('month',this)" data-i18n="periodMonth">本月</button>
+          <button class="seg-pill" data-period="quarter" onclick="setPeriod('quarter',this)" data-i18n="periodQuarter">本季</button>
+          <button class="seg-pill" data-period="year" onclick="setPeriod('year',this)" data-i18n="periodYear">今年</button>
+          <button class="seg-pill" data-period="all" onclick="setPeriod('all',this)" data-i18n="periodAll">全部</button>
         </div>
       </div>
 
       <!-- Hero Net Worth Card -->
-      <div class="hero-card grad-dark glass">
+      <div class="hero-card grad-red glass">
         <div class="hero-label">净结余 · NET BALANCE</div>
         <div class="hero-value" id="netAmount">¥0</div>
         <div class="hero-sub" id="netSub">暂无数据</div>
@@ -729,20 +1177,20 @@ canvas { max-height: 230px; }
           <div class="empty-icon-badge">📊</div>
           <div class="empty-text">导入数据后显示趋势图</div>
         </div>
-        <canvas id="trendChart" height="100"></canvas>
+        <div class="chart-trend-wrap"><canvas id="trendChart"></canvas></div>
       </div>
 
       <div class="grid-2" style="margin-top:14px">
         <div class="card glass">
           <div class="chart-title">支出分类</div>
           <div class="chart-sub">各类别占比</div>
-          <canvas id="expensePieChart"></canvas>
+          <div class="chart-pie-wrap"><canvas id="expensePieChart"></canvas></div>
           <div class="legend-flow" id="expenseLegend"></div>
         </div>
         <div class="card glass">
           <div class="chart-title">收入分类</div>
           <div class="chart-sub">各类别占比</div>
-          <canvas id="incomePieChart"></canvas>
+          <div class="chart-pie-wrap"><canvas id="incomePieChart"></canvas></div>
           <div class="legend-flow" id="incomeLegend"></div>
         </div>
       </div>
@@ -812,6 +1260,19 @@ canvas { max-height: 230px; }
       </div>
 
       <div class="sh"><div class="sh-title" style="font-size:18px">导出数据</div></div>
+      <div class="card glass" style="margin-bottom:14px;border:1px solid rgba(255,159,10,0.25)">
+        <div class="flex-row gap-14" style="align-items:flex-start">
+          <div style="font-size:22px;flex-shrink:0">💾</div>
+          <div>
+            <div style="font-size:13.5px;font-weight:700;color:var(--amber)">数据保存在本设备浏览器中</div>
+            <div style="font-size:12px;color:var(--label-3);margin-top:4px;line-height:1.6;font-weight:500">
+              所有记账与资产数据存储在<strong>本浏览器的本地缓存（localStorage）</strong>，不会上传到云端。
+              清除浏览器数据、更换设备或长期不打开此页面，都可能导致数据丢失。
+              建议定期点击下方「导出为 JSON」做完整备份。
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="card glass">
         <div class="chart-sub" style="margin-bottom:14px">将你的记账与资产数据导出，方便在其他工具中使用或备份</div>
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -874,14 +1335,14 @@ canvas { max-height: 230px; }
           <div class="empty-icon-badge">📈</div>
           <div class="empty-text">更新资产金额后将自动记录时间点<br>积累数据后即可看到走势趋势</div>
         </div>
-        <canvas id="assetTimelineChart" height="90" style="display:none"></canvas>
+        <div class="chart-trend-wrap" style="display:none" id="assetTimelineWrap"><canvas id="assetTimelineChart"></canvas></div>
       </div>
 
       <!-- Per-asset breakdown timeline (separate card) -->
       <div class="sh"><div class="sh-title" style="font-size:18px">各资产明细走势</div></div>
       <div class="card glass" id="breakdownCard" style="display:none">
         <div class="chart-sub">每项资产随时间的变化对比</div>
-        <canvas id="assetBreakdownChart" height="130"></canvas>
+        <div class="chart-trend-wrap"><canvas id="assetBreakdownChart"></canvas></div>
         <div class="legend-flow" id="timelineLegend"></div>
       </div>
       <div class="card glass empty-state" id="breakdownEmpty" style="padding:24px 0">
@@ -893,13 +1354,13 @@ canvas { max-height: 230px; }
         <div class="card glass">
           <div class="chart-title">资产分布</div>
           <div class="chart-sub">各类资产占比</div>
-          <canvas id="assetPieChart"></canvas>
+          <div class="chart-pie-wrap"><canvas id="assetPieChart"></canvas></div>
           <div class="legend-flow" id="assetLegend"></div>
         </div>
         <div class="card glass">
           <div class="chart-title">资产结构</div>
           <div class="chart-sub">横向对比</div>
-          <canvas id="assetBarChart"></canvas>
+          <div class="chart-pie-wrap" style="max-width:none"><canvas id="assetBarChart"></canvas></div>
         </div>
       </div>
 
@@ -967,7 +1428,7 @@ canvas { max-height: 230px; }
           <div class="empty-icon-badge">📡</div>
           <div class="empty-text">至少需要 2 个月数据进行预测</div>
         </div>
-        <canvas id="predictionChart" height="110" style="display:none"></canvas>
+        <div class="chart-trend-wrap" id="predictionWrap" style="display:none"><canvas id="predictionChart"></canvas></div>
         <div id="predictionSummary" style="display:none;margin-top:14px"></div>
       </div>
 
@@ -975,7 +1436,7 @@ canvas { max-height: 230px; }
       <div class="sh"><div class="sh-title" style="font-size:18px">📅 消费节奏</div></div>
       <div class="card glass">
         <div class="chart-sub" style="margin-bottom:14px">按星期几查看消费分布</div>
-        <canvas id="weekdayChart" height="90"></canvas>
+        <div class="chart-trend-wrap" style="height:200px"><canvas id="weekdayChart"></canvas></div>
       </div>
     </section>
 
@@ -984,24 +1445,24 @@ canvas { max-height: 230px; }
   <!-- ═══════ BOTTOM TAB BAR (mobile) ═══════ -->
   <nav class="tabbar glass">
     <button class="tab-item active" data-page="overview" onclick="switchPage('overview')">
-      <span class="tab-icon">🏠</span><span class="tab-label">概览</span>
+      <span class="tab-icon">🏠</span><span class="tab-label" data-i18n="navOverview">概览</span>
     </button>
     <button class="tab-item" data-page="transactions" onclick="switchPage('transactions')">
-      <span class="tab-icon">🧾</span><span class="tab-label">记账</span>
+      <span class="tab-icon">🧾</span><span class="tab-label" data-i18n="navTransactions">记账</span>
     </button>
     <div class="tab-fab-slot">
-      <button class="fab-tab" onclick="openAddChoice()" aria-label="新增记录">＋</button>
+      <button class="fab-tab" onclick="contextAddAction()" aria-label="新增记录" id="fabTabBtn">＋</button>
     </div>
     <button class="tab-item" data-page="assets" onclick="switchPage('assets')">
-      <span class="tab-icon">🏦</span><span class="tab-label">资产</span>
+      <span class="tab-icon">🏦</span><span class="tab-label" data-i18n="navAssets">资产</span>
     </button>
     <button class="tab-item" data-page="analysis" onclick="switchPage('analysis')">
-      <span class="tab-icon">🧭</span><span class="tab-label">分析</span>
+      <span class="tab-icon">🧭</span><span class="tab-label" data-i18n="navAnalysis">分析</span>
     </button>
   </nav>
 
   <!-- Desktop-only standalone FAB -->
-  <button class="fab" onclick="openAddChoice()" aria-label="新增记录">＋</button>
+  <button class="fab" onclick="contextAddAction()" aria-label="新增记录" id="fabDesktopBtn">＋</button>
 
 </div><!-- /app-shell -->
 
@@ -1029,25 +1490,53 @@ canvas { max-height: 230px; }
 
 <!-- Quick add transaction sheet -->
 <div class="sheet-overlay" id="txModal" onclick="closeTxModal(event)">
-  <div class="sheet glass">
+  <div class="sheet glass tx-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">记一笔</div>
-    <div class="segmented" style="width:100%;margin-bottom:16px">
-      <button class="seg-pill active" style="flex:1" id="segExpense" onclick="setTxType('支出')">支出</button>
-      <button class="seg-pill" style="flex:1" id="segIncome" onclick="setTxType('收入')">收入</button>
+    <div class="segmented" style="width:100%;margin-bottom:18px">
+      <button class="seg-pill active" style="flex:1" id="segExpense" onclick="setTxType('支出')" data-i18n="typeExpense">支出</button>
+      <button class="seg-pill" style="flex:1" id="segIncome" onclick="setTxType('收入')" data-i18n="typeIncome">收入</button>
     </div>
-    <div class="field"><label class="field-label">金额</label><input class="field-input" id="txAmount" type="number" placeholder="0.00" inputmode="decimal"></div>
-    <div class="field">
-      <label class="field-label">类别</label>
-      <select class="field-select" id="txCategorySelect" onchange="onCategorySelectChange()"></select>
-      <input class="field-input cat-custom-input" id="txCategoryCustom" placeholder="输入自定义类别名称">
+
+    <!-- Big calculator-style amount display -->
+    <div class="amount-display" id="amountDisplay">
+      <span class="amount-currency">¥</span><span id="amountText">0</span><span class="amount-cursor">|</span>
     </div>
-    <div class="field"><label class="field-label">日期</label><input class="field-input" id="txDate" type="date"></div>
-    <div class="field"><label class="field-label">备注（可选）</label><input class="field-input" id="txNote" placeholder="补充说明"></div>
+
+    <!-- Numeric keypad -->
+    <div class="keypad">
+      <button class="keypad-btn" onclick="keypadInput('1')">1</button>
+      <button class="keypad-btn" onclick="keypadInput('2')">2</button>
+      <button class="keypad-btn" onclick="keypadInput('3')">3</button>
+      <button class="keypad-btn" onclick="keypadInput('4')">4</button>
+      <button class="keypad-btn" onclick="keypadInput('5')">5</button>
+      <button class="keypad-btn" onclick="keypadInput('6')">6</button>
+      <button class="keypad-btn" onclick="keypadInput('7')">7</button>
+      <button class="keypad-btn" onclick="keypadInput('8')">8</button>
+      <button class="keypad-btn" onclick="keypadInput('9')">9</button>
+      <button class="keypad-btn" onclick="keypadInput('.')">.</button>
+      <button class="keypad-btn" onclick="keypadInput('0')">0</button>
+      <button class="keypad-btn keypad-del" onclick="keypadDelete()">⌫</button>
+    </div>
+
+    <!-- Icon-grid category picker -->
+    <div class="field-label" style="margin-top:4px" data-i18n="categoryLabel">类别</div>
+    <div class="cat-icon-grid" id="catIconGrid"></div>
+    <input class="field-input cat-custom-input" id="txCategoryCustom" placeholder="输入自定义类别名称" oninput="onCustomCatInput()">
+
+    <div class="field" style="margin-top:14px"><label class="field-label" data-i18n="dateLabel">时间</label><input class="field-input" id="txDate" type="datetime-local" step="1"></div>
+    <div class="field"><label class="field-label" data-i18n="noteLabel">备注（可选）</label><input class="field-input" id="txNote" placeholder="补充说明" data-i18n-ph="notePlaceholder"></div>
     <div class="btn-row">
-      <button class="btn btn-secondary" onclick="closeTxModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveQuickTx()">保存</button>
+      <button class="btn btn-secondary" onclick="closeTxModal()" data-i18n="cancel">取消</button>
+      <button class="btn btn-primary" onclick="saveQuickTx()" data-i18n="save">保存</button>
     </div>
+  </div>
+</div>
+
+<!-- Transaction detail sheet (card-style, shown on row click) -->
+<div class="sheet-overlay" id="txDetailModal" onclick="closeTxDetail(event)">
+  <div class="sheet glass tx-detail-sheet">
+    <div class="sheet-handle"></div>
+    <div id="txDetailContent"></div>
   </div>
 </div>
 
@@ -1073,6 +1562,76 @@ canvas { max-height: 230px; }
   </div>
 </div>
 
+<!-- ═══════ AUTH MODAL ═══════ -->
+<div class="sheet-overlay" id="authModal" onclick="closeAuthModal(event)">
+  <div class="sheet glass auth-sheet">
+    <div class="sheet-handle"></div>
+
+    <!-- Auth header -->
+    <div class="auth-logo">
+      <div class="brand-mark" style="width:48px;height:48px;border-radius:16px;font-size:22px">R</div>
+      <div style="margin-top:10px;font-size:19px;font-weight:800;letter-spacing:-.3px">Roadster</div>
+      <div class="auth-mode-desc" id="authModeDesc">登录后数据安全同步到云端</div>
+    </div>
+
+    <!-- Tab: login / register -->
+    <div class="segmented" style="width:100%;margin-bottom:20px" id="authTabBar">
+      <button class="seg-pill active" style="flex:1" id="tabLogin" onclick="switchAuthMode('login')">登录</button>
+      <button class="seg-pill" style="flex:1" id="tabRegister" onclick="switchAuthMode('register')">注册</button>
+    </div>
+
+    <div class="field" id="authNameField" style="display:none">
+      <label class="field-label">昵称（可选）</label>
+      <input class="field-input" id="authName" placeholder="你的名字" autocomplete="name">
+    </div>
+    <div class="field">
+      <label class="field-label">邮箱</label>
+      <input class="field-input" id="authEmail" type="email" placeholder="your@email.com" autocomplete="email">
+    </div>
+    <div class="field" id="authPasswordField">
+      <label class="field-label">密码</label>
+      <div style="position:relative">
+        <input class="field-input" id="authPassword" type="password" placeholder="至少 6 位" autocomplete="current-password" style="padding-right:48px">
+        <button onclick="togglePwdVisibility()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--label-4)" id="pwdEyeBtn">👁️</button>
+      </div>
+    </div>
+
+    <div id="authError" class="auth-error"></div>
+
+    <button class="btn btn-primary btn-block" id="authSubmitBtn" onclick="submitAuth()" style="margin-top:4px">
+      <span id="authSubmitLabel">登录</span>
+    </button>
+
+    <button class="auth-link" id="forgotPwdBtn" onclick="switchAuthMode('reset')">忘记密码？</button>
+
+    <!-- Reset password mode (hidden by default) -->
+    <div id="resetSection" style="display:none">
+      <div style="height:1px;background:var(--separator);margin:16px 0"></div>
+      <div class="field">
+        <label class="field-label">输入注册邮箱，我们会发送重置链接</label>
+        <input class="field-input" id="resetEmail" type="email" placeholder="your@email.com">
+      </div>
+      <button class="btn btn-secondary btn-block" onclick="sendPasswordReset()">发送重置邮件</button>
+      <button class="auth-link" onclick="switchAuthMode('login')">← 返回登录</button>
+    </div>
+
+    <!-- Logged-in state -->
+    <div id="loggedInSection" style="display:none">
+      <div class="auth-user-card" id="authUserCard"></div>
+      <div class="sync-status-row" id="syncStatusRow"></div>
+      <button class="btn btn-primary btn-block" onclick="syncToCloud()" id="manualSyncBtn" style="margin-top:12px">
+        ☁️ 立即同步到云端
+      </button>
+      <button class="btn btn-secondary btn-block" onclick="signOutUser()" style="margin-top:10px">
+        退出登录
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cloud sync status toast (persistent, shown in top area) -->
+<div id="syncBanner" class="sync-banner"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1084,6 +1643,24 @@ let transactions  = JSON.parse(localStorage.getItem('rdstr_tx') || '[]');
 let assets        = JSON.parse(localStorage.getItem('rdstr_assets') || '[]');
 let assetHistory  = JSON.parse(localStorage.getItem('rdstr_asset_history') || '[]');
 
+// ── Expose data as window globals so the Firebase module (ES module scope)
+//    can read them for cloud sync without duplicating state management ──
+Object.defineProperty(window, '_rdstrTransactions',  { get:()=>transactions });
+Object.defineProperty(window, '_rdstrAssets',         { get:()=>assets });
+Object.defineProperty(window, '_rdstrAssetHistory',   { get:()=>assetHistory });
+
+// ── Called by Firebase module after a successful cloud load to reload
+//    the merged data that was written back to localStorage ──
+window._rdstrReloadFromStorage = function(){
+  transactions = JSON.parse(localStorage.getItem('rdstr_tx') || '[]');
+  assets       = JSON.parse(localStorage.getItem('rdstr_assets') || '[]');
+  assetHistory = JSON.parse(localStorage.getItem('rdstr_asset_history') || '[]');
+  refreshOverview();
+  const activePage = document.querySelector('.page.active');
+  if(activePage?.id === 'page-assets') renderAssets();
+  if(activePage?.id === 'page-transactions') renderTxPage();
+};
+
 let currentPeriod  = 'month';
 let timelineRange  = 90;
 let editingAssetId = null;
@@ -1092,6 +1669,109 @@ let txFilterType   = '';
 let charts = {};
 
 const PALETTE = ['#5e7ce2','#2fb380','#f5a623','#ef4458','#8b6ef0','#5ac8fa','#e0699e','#30b0c7','#ffd60a','#32ade6','#30d158','#bf5af2'];
+
+// Chart.js renders to <canvas>, which can't resolve CSS var() at paint time —
+// colors passed to Chart.js options must be resolved JS-side. This reads the
+// live computed value of a CSS custom property so chart text/gridlines stay
+// correctly themed across light/dark mode and don't need separate chart
+// instances per theme.
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// ═══════════════════════════════
+//  THEME (light / dark)
+// ═══════════════════════════════
+function setTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('rdstr_theme', mode);
+  document.querySelectorAll('[data-theme-opt]').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.themeOpt===mode);
+  });
+  // Re-render charts so their colors/gridlines pick up new CSS custom properties
+  if(typeof refreshActiveChartsForTheme === 'function') refreshActiveChartsForTheme();
+}
+function initTheme(){
+  const saved = localStorage.getItem('rdstr_theme');
+  const mode = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  setTheme(mode);
+}
+function refreshActiveChartsForTheme(){
+  // Charts read CSS vars at creation time via JS strings, not live — cheapest
+  // correct fix is to re-render whichever page is currently visible.
+  const activePage = document.querySelector('.page.active');
+  if(!activePage) return;
+  if(activePage.id==='page-overview') refreshOverview();
+  else if(activePage.id==='page-assets') renderAssets();
+  else if(activePage.id==='page-analysis') renderAnalysis();
+}
+
+// ═══════════════════════════════
+//  i18n (中文 / English)
+// ═══════════════════════════════
+let currentLang = localStorage.getItem('rdstr_lang') || 'zh';
+
+const I18N = {
+  zh: {
+    brandSub: 'PERSONAL FINANCE COPILOT',
+    navOverview: '概览', navTransactions: '记账', navAssets: '资产', navAnalysis: '分析',
+    addBtn: '新增',
+    overviewSubtitle: '这是你的财务总览',
+    periodMonth:'本月', periodQuarter:'本季', periodYear:'今年', periodAll:'全部',
+    typeExpense: '支出', typeIncome: '收入',
+    categoryLabel: '类别', dateLabel: '日期', noteLabel: '备注（可选）', notePlaceholder: '补充说明',
+    cancel: '取消', save: '保存',
+    toastInvalidAmount: '⚠️ 请填写有效金额',
+    toastNeedCategory: '⚠️ 请选择类别',
+    toastNeedDate: '⚠️ 请选择日期',
+    toastDuplicate: '⚠️ 该记录已存在，未重复添加',
+    toastTxAdded: (p)=>`✅ 已添加 1 笔${p.type}`,
+  },
+  en: {
+    brandSub: 'PERSONAL FINANCE COPILOT',
+    navOverview: 'Overview', navTransactions: 'Ledger', navAssets: 'Assets', navAnalysis: 'Insights',
+    addBtn: 'Add',
+    overviewSubtitle: 'Your financial overview',
+    periodMonth:'Month', periodQuarter:'Quarter', periodYear:'Year', periodAll:'All',
+    typeExpense: 'Expense', typeIncome: 'Income',
+    categoryLabel: 'Category', dateLabel: 'Date', noteLabel: 'Note (optional)', notePlaceholder: 'Add a note',
+    cancel: 'Cancel', save: 'Save',
+    toastInvalidAmount: '⚠️ Please enter a valid amount',
+    toastNeedCategory: '⚠️ Please pick a category',
+    toastNeedDate: '⚠️ Please pick a date',
+    toastDuplicate: '⚠️ This entry already exists',
+    toastTxAdded: (p)=>`✅ Added 1 ${p.type} entry`,
+  }
+};
+
+function t(key, params){
+  const dict = I18N[currentLang] || I18N.zh;
+  const val = dict[key];
+  if(typeof val === 'function') return val(params||{});
+  return val !== undefined ? val : key;
+}
+
+function applyI18n(){
+  document.documentElement.lang = currentLang==='zh' ? 'zh-CN' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if(typeof val === 'string') el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-ph');
+    const val = t(key);
+    if(typeof val === 'string') el.placeholder = val;
+  });
+  document.getElementById('langBtnDesktop').textContent = currentLang==='zh' ? 'EN' : '中';
+  document.getElementById('langBtnMobile').textContent = currentLang==='zh' ? 'EN' : '中';
+}
+function toggleLang(){
+  currentLang = currentLang==='zh' ? 'en' : 'zh';
+  localStorage.setItem('rdstr_lang', currentLang);
+  applyI18n();
+  refreshActiveChartsForTheme(); // re-render data-driven labels too
+}
 
 // ═══════════════════════════════
 //  GREETING
@@ -1244,24 +1924,35 @@ function buildTrendChart(txs){
   }
 
   if(charts.trend) charts.trend.destroy();
+  const greenColor = cssVar('--green'), redColor = cssVar('--red');
   charts.trend = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [
-        { label:'收入', data: incomeData, borderColor:'#2fb380', backgroundColor:'rgba(47,179,128,.12)', fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:labels.length>20?0:3, pointHoverRadius:6, borderWidth:2.5 },
-        { label:'支出', data: expenseData, borderColor:'#ef4458', backgroundColor:'rgba(239,68,88,.08)', fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:labels.length>20?0:3, pointHoverRadius:6, borderWidth:2.5 }
+        { label:'收入', data: incomeData, borderColor:greenColor, backgroundColor:hexToRgba(greenColor,0.14), fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:labels.length>20?0:3, pointHoverRadius:6, borderWidth:2.5, pointBackgroundColor:greenColor, pointBorderColor:cssVar('--surface-solid'), pointBorderWidth:2 },
+        { label:'支出', data: expenseData, borderColor:redColor, backgroundColor:hexToRgba(redColor,0.1), fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:labels.length>20?0:3, pointHoverRadius:6, borderWidth:2.5, pointBackgroundColor:redColor, pointBorderColor:cssVar('--surface-solid'), pointBorderWidth:2 }
       ]
     },
     options: {
-      responsive:true, interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{display:true,position:'top',labels:{font:{size:12,weight:600},boxWidth:10,usePointStyle:true,padding:16}} },
+      responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:true,position:'top',labels:{font:{size:12,weight:600},boxWidth:10,usePointStyle:true,padding:16,color:cssVar('--label-2')}} },
       scales:{
-        x:{ grid:{display:false}, ticks:{font:{size:10.5},maxRotation:0,autoSkip:true,maxTicksLimit:8} },
-        y:{ grid:{color:'rgba(120,120,120,.12)'}, ticks:{font:{size:11},callback:v=>'¥'+fmtK(v)} }
+        x:{ grid:{display:false}, ticks:{font:{size:10.5},maxRotation:0,autoSkip:true,maxTicksLimit:8,color:cssVar('--label-4')} },
+        y:{ grid:{color:cssVar('--separator')}, ticks:{font:{size:11},callback:v=>'¥'+fmtK(v),color:cssVar('--label-4')} }
       }
     }
   });
+}
+
+// Converts a hex color (#rrggbb) to an rgba() string with the given alpha.
+// Needed because Chart.js fill colors are computed at render time and can't
+// reference CSS color-mix()/var() directly.
+function hexToRgba(hex, alpha){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function renderRecentTx(txs){
@@ -1292,6 +1983,21 @@ const CAT_ICONS = {
   Salary:'💼',Income:'💰',Travel:'✈️',Health:'🏥',Education:'📖',Other:'📌',Coffee:'☕'
 };
 function catIcon(c){ return CAT_ICONS[c] || '💳'; }
+
+// Formats a stored `date` value for display. Supports both the legacy
+// "YYYY-MM-DD" format (from CSV imports / older entries) and the newer
+// "YYYY-MM-DDTHH:mm:ss" format (from the quick-add datetime picker),
+// showing hours:minutes:seconds whenever that detail is present.
+function formatTxDateTime(dateStr){
+  if(!dateStr) return '';
+  if(dateStr.includes('T')){
+    const [datePart, timePart] = dateStr.split('T');
+    const hms = (timePart||'').slice(0,8); // HH:mm:ss
+    return hms ? `${datePart} ${hms}` : datePart;
+  }
+  return dateStr;
+}
+
 function txHtml(t){
   const isLoss = t.type==='收入' && t.amount<0;
   const isGain = t.type==='收入' && t.amount>=0;
@@ -1302,16 +2008,69 @@ function txHtml(t){
     : isLoss
       ? 'linear-gradient(135deg,rgba(239,68,88,.16),rgba(245,166,35,.12))'
       : 'linear-gradient(135deg,rgba(94,124,226,.14),rgba(139,110,240,.14))';
-  return `<div class="tx-row">
+  return `<div class="tx-row tx-row-clickable" onclick="openTxDetail('${t.id}')">
     <div class="tx-icon" style="background:${iconBg}">${isLoss ? '📉' : catIcon(t.category)}</div>
     <div class="tx-info">
       <div class="tx-name">${escapeHtml(t.category)}${t.note?' · '+escapeHtml(t.note):''}${isLoss?' · 亏损':''}</div>
-      <div class="tx-meta">${t.date}</div>
+      <div class="tx-meta">${formatTxDateTime(t.date)}</div>
     </div>
     <div class="tx-amount ${amtClass}">${sign}¥${fmt(Math.abs(t.amount))}</div>
   </div>`;
 }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// ═══════════════════════════════
+//  TRANSACTION DETAIL CARD (click-to-view)
+// ═══════════════════════════════
+function openTxDetail(txId){
+  const tx = transactions.find(x=>x.id===txId);
+  if(!tx) return;
+
+  const isLoss = tx.type==='收入' && tx.amount<0;
+  const isGain = tx.type==='收入' && tx.amount>=0;
+  const amtColor = isGain ? cssVar('--green') : (isLoss ? cssVar('--red') : cssVar('--label'));
+  const sign = isLoss ? '−' : (isGain ? '+' : '−');
+  const headerGrad = isGain ? 'var(--grad-green)' : isLoss ? 'var(--grad-red)' : 'var(--grad-blue)';
+
+  const content = document.getElementById('txDetailContent');
+  content.innerHTML = `
+    <div class="tx-detail-header" style="background:${headerGrad}">
+      <div class="tx-detail-icon">${isLoss ? '📉' : catIcon(tx.category)}</div>
+      <div class="tx-detail-type">${tx.type}${isLoss ? ' · 亏损' : ''}</div>
+      <div class="tx-detail-amount">${sign}¥${fmt(Math.abs(tx.amount))}</div>
+    </div>
+    <div class="tx-detail-rows">
+      <div class="tx-detail-row">
+        <span class="tx-detail-label">📁 类别</span>
+        <span class="tx-detail-value">${escapeHtml(tx.category)}</span>
+      </div>
+      <div class="tx-detail-row">
+        <span class="tx-detail-label">🕐 时间</span>
+        <span class="tx-detail-value">${formatTxDateTime(tx.date)}</span>
+      </div>
+      ${tx.note ? `<div class="tx-detail-row">
+        <span class="tx-detail-label">📝 备注</span>
+        <span class="tx-detail-value">${escapeHtml(tx.note)}</span>
+      </div>` : ''}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeTxDetail()">关闭</button>
+      <button class="btn" style="background:rgba(255,59,48,0.12);color:var(--red)" onclick="deleteTxFromDetail('${tx.id}')">🗑️ 删除</button>
+    </div>
+  `;
+  document.getElementById('txDetailModal').classList.add('open');
+}
+function closeTxDetail(e){ if(!e || e.target===document.getElementById('txDetailModal')) document.getElementById('txDetailModal').classList.remove('open'); }
+function deleteTxFromDetail(txId){
+  if(!confirm('确认删除这条记录？')) return;
+  transactions = transactions.filter(x=>x.id!==txId);
+  localStorage.setItem('rdstr_tx', JSON.stringify(transactions));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
+  closeTxDetail();
+  showToast('🗑️ 已删除该记录');
+  refreshOverview();
+  if(document.getElementById('page-transactions').classList.contains('active')) renderTxPage();
+}
 
 // ═══════════════════════════════
 //  ASSETS
@@ -1349,9 +2108,17 @@ function renderAssets(){
     charts.assetBar = new Chart(ctx, {
       type:'bar',
       data:{ labels:keys, datasets:[{ data:keys.map(k=>cats[k]), backgroundColor:PALETTE.slice(0,keys.length), borderRadius:8, borderSkipped:false }] },
-      options:{ indexAxis:'y', responsive:true,
-        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)}`}} },
-        scales:{ x:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:11},callback:v=>'¥'+fmtK(v)}}, y:{grid:{display:false},ticks:{font:{size:11}}} } }
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)}`}},
+          datalabels:{
+            display:true, anchor:'end', align:'right', offset:4,
+            color:cssVar('--label-2'), font:{ size:10.5, weight:700 },
+            formatter:(value)=>'¥'+fmtK(value)
+          }
+        },
+        scales:{ x:{grid:{color:cssVar('--separator')},ticks:{font:{size:11},callback:v=>'¥'+fmtK(v),color:cssVar('--label-4')}}, y:{grid:{display:false},ticks:{font:{size:11},color:cssVar('--label-3')}} } }
     });
   } else {
     if(charts.assetBar){ charts.assetBar.destroy(); charts.assetBar=null; }
@@ -1364,29 +2131,96 @@ function renderAssets(){
     grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon-badge">🏦</div><div class="empty-text">点击「＋ 添加」开始记录资产</div></div>';
     return;
   }
-  grid.innerHTML = assets.map(a=>{
-    const prev = getPrevValue(a.id);
-    const delta = prev!==null ? a.value-prev : null;
-    const deltaHtml = delta!==null
-      ? `<div class="bank-card-delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ¥${fmt(Math.abs(delta))}</div>`
-      : `<div class="bank-card-delta" style="opacity:.5">首次记录</div>`;
-    return `<div class="bank-card" style="background:${assetGradient(a.category)}">
-      <div class="bank-card-texture"></div>
-      <div class="bank-card-top">
-        <div class="bank-card-icon">${assetIcon(a.category)}</div>
-        <button class="bank-card-delete" onclick="deleteAsset('${a.id}')">×</button>
-      </div>
-      <div class="bank-card-mid">
-        <div class="bank-card-name">${escapeHtml(a.name)}</div>
-        <div class="bank-card-value">¥${fmt(a.value)}</div>
-      </div>
-      <div class="bank-card-bottom">
-        <div class="bank-card-note">${escapeHtml(a.category)}${a.note?' · '+escapeHtml(a.note):''}</div>
-        ${deltaHtml}
-      </div>
-      <button class="bank-card-update-btn" onclick="editAsset('${a.id}')">✏️ 更新金额</button>
+
+  // ── Sort by name, group by first character (A-Z / 0-9 / # for CJK & symbols) ──
+  // This mirrors the iOS Contacts-style index grouping the user asked for,
+  // making the *name* the primary scan anchor rather than the category icon.
+  const sorted = [...assets].sort((a,b)=>a.name.localeCompare(b.name,'zh-Hans-CN'));
+  const groups = {};
+  const groupOrder = [];
+  sorted.forEach(a=>{
+    const letter = firstIndexLetter(a.name);
+    if(!groups[letter]){ groups[letter]=[]; groupOrder.push(letter); }
+    groups[letter].push(a);
+  });
+
+  grid.innerHTML = groupOrder.map(letter=>{
+    const items = groups[letter].map(a=>assetBankCardHtml(a)).join('');
+    return `<div class="asset-letter-group">
+      <div class="asset-letter-header">${letter}</div>
+      <div class="asset-card-grid">${items}</div>
     </div>`;
   }).join('');
+}
+
+// Returns an uppercase Latin letter, digit, or '#' for the leading-character index.
+// CJK names fall back to '#' since true pinyin sorting needs a lookup table we
+// don't want to ship — they still sort correctly via localeCompare above.
+function firstIndexLetter(name){
+  const ch = (name||'').trim().charAt(0).toUpperCase();
+  if(/[A-Z]/.test(ch)) return ch;
+  if(/[0-9]/.test(ch)) return '#';
+  if(/[\u4e00-\u9fa5]/.test(ch)) return '中';
+  return '#';
+}
+
+// Builds a small inline SVG sparkline (no Chart.js — keeps perf sane when
+// rendering many cards at once) showing an asset's value history.
+function assetSparklineSvg(assetId){
+  const points = assetHistory
+    .filter(h => h.breakdown && h.breakdown[assetId] !== undefined)
+    .map(h => h.breakdown[assetId]);
+  if(points.length < 2) return ''; // not enough history to draw a trend
+
+  const w = 64, h = 28, pad = 3;
+  const min = Math.min(...points), max = Math.max(...points);
+  const range = (max - min) || 1; // avoid div-by-zero on a flat line
+  const stepX = (w - pad*2) / (points.length - 1);
+  const coords = points.map((v,i)=>{
+    const x = pad + i*stepX;
+    const y = pad + (1 - (v-min)/range) * (h - pad*2);
+    return [x,y];
+  });
+  const pathD = coords.map(([x,y],i)=> (i===0?'M':'L') + x.toFixed(1) + ',' + y.toFixed(1)).join(' ');
+  const trendingUp = points[points.length-1] >= points[0];
+  const strokeColor = trendingUp ? 'rgba(134,239,172,0.95)' : 'rgba(253,164,175,0.95)';
+  const lastPoint = coords[coords.length-1];
+
+  return `<svg class="bank-card-spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+    <path d="${pathD}" stroke="${strokeColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastPoint[0].toFixed(1)}" cy="${lastPoint[1].toFixed(1)}" r="2.2" fill="${strokeColor}"/>
+  </svg>`;
+}
+
+function assetBankCardHtml(a){
+  const prev = getPrevValue(a.id);
+  const delta = prev!==null ? a.value-prev : null;
+  const deltaHtml = delta!==null
+    ? `<div class="bank-card-delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ¥${fmt(Math.abs(delta))}</div>`
+    : `<div class="bank-card-delta" style="opacity:.5">首次记录</div>`;
+  const initial = (a.name||'?').trim().charAt(0).toUpperCase();
+  const sparkline = assetSparklineSvg(a.id);
+  return `<div class="bank-card" style="background:${assetGradient(a.category)}">
+    <div class="bank-card-texture"></div>
+    <div class="bank-card-top">
+      <div class="bank-card-monogram">${escapeHtml(initial)}</div>
+      <button class="bank-card-delete" onclick="deleteAsset('${a.id}')">×</button>
+    </div>
+    <div class="bank-card-mid">
+      <div class="bank-card-mid-row">
+        <div>
+          <div class="bank-card-name-lg">${escapeHtml(a.name)}</div>
+          <div class="bank-card-value">¥${fmt(a.value)}</div>
+        </div>
+        ${sparkline ? `<div class="bank-card-spark-wrap">${sparkline}</div>` : ''}
+      </div>
+    </div>
+    <div class="bank-card-bottom">
+      <div class="bank-card-note">${assetIcon(a.category)} ${escapeHtml(a.category)}${a.note?' · '+escapeHtml(a.note):''}</div>
+      ${deltaHtml}
+    </div>
+    <button class="bank-card-update-btn" onclick="editAsset('${a.id}')">✏️ 更新金额</button>
+  </div>`;
 }
 
 function renderNetworthStats(total){
@@ -1429,17 +2263,18 @@ function getPrevValue(assetId){
 
 function buildAssetTimeline(){
   const tlCanvas = document.getElementById('assetTimelineChart');
+  const tlWrap = document.getElementById('assetTimelineWrap');
   const bkCanvas = document.getElementById('assetBreakdownChart');
   const empty = document.getElementById('timelineEmpty');
   const breakdownCard = document.getElementById('breakdownCard');
   const breakdownEmpty = document.getElementById('breakdownEmpty');
 
   if(!assetHistory.length){
-    tlCanvas.style.display='none'; empty.style.display='';
+    tlWrap.style.display='none'; empty.style.display='';
     breakdownCard.style.display='none'; breakdownEmpty.style.display='';
     return;
   }
-  tlCanvas.style.display=''; empty.style.display='none';
+  tlWrap.style.display=''; empty.style.display='none';
 
   let hist = [...assetHistory];
   if(timelineRange>0){
@@ -1452,12 +2287,13 @@ function buildAssetTimeline(){
   const totals = hist.map(h=>h.total);
 
   if(charts.assetTimeline) charts.assetTimeline.destroy();
+  const blueColor = cssVar('--blue');
   charts.assetTimeline = new Chart(tlCanvas, {
     type:'line',
-    data:{ labels, datasets:[{ label:'总资产', data:totals, borderColor:'#5e7ce2', backgroundColor:'rgba(94,124,226,.14)', fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:hist.length>16?0:4, pointHoverRadius:6, borderWidth:2.5 }] },
-    options:{ responsive:true, interaction:{mode:'index',intersect:false},
+    data:{ labels, datasets:[{ label:'总资产', data:totals, borderColor:blueColor, backgroundColor:hexToRgba(blueColor,0.14), fill:true, tension:.5, cubicInterpolationMode:'monotone', pointRadius:hist.length>16?0:4, pointHoverRadius:6, borderWidth:2.5, pointBackgroundColor:blueColor, pointBorderColor:cssVar('--surface-solid'), pointBorderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)}`}} },
-      scales:{ x:{grid:{display:false},ticks:{font:{size:11},maxRotation:0,autoSkip:true,maxTicksLimit:6}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:11},callback:v=>'¥'+fmtK(v)}} } }
+      scales:{ x:{grid:{display:false},ticks:{font:{size:11},maxRotation:0,autoSkip:true,maxTicksLimit:6,color:cssVar('--label-4')}}, y:{grid:{color:cssVar('--separator')},ticks:{font:{size:11},callback:v=>'¥'+fmtK(v),color:cssVar('--label-4')}} } }
   });
 
   const allIds = {};
@@ -1476,9 +2312,9 @@ function buildAssetTimeline(){
     if(charts.assetBreakdown) charts.assetBreakdown.destroy();
     charts.assetBreakdown = new Chart(bkCanvas, {
       type:'line', data:{ labels, datasets },
-      options:{ responsive:true, interaction:{mode:'index',intersect:false},
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
         plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: ¥${fmt(c.raw)}`}} },
-        scales:{ x:{grid:{display:false},ticks:{font:{size:10.5},maxRotation:0,autoSkip:true,maxTicksLimit:6}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:10.5},callback:v=>'¥'+fmtK(v)}} } }
+        scales:{ x:{grid:{display:false},ticks:{font:{size:10.5},maxRotation:0,autoSkip:true,maxTicksLimit:6,color:cssVar('--label-4')}}, y:{grid:{color:cssVar('--separator')},ticks:{font:{size:10.5},callback:v=>'¥'+fmtK(v),color:cssVar('--label-4')}} } }
     });
     document.getElementById('timelineLegend').innerHTML = ids.map((id,i)=>`<div class="legend-chip"><div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>${escapeHtml(nameMap[id]||id)}</div>`).join('');
   } else {
@@ -1497,6 +2333,7 @@ function recordAssetSnapshot(){
   }
   assetHistory.push(snap);
   localStorage.setItem('rdstr_asset_history', JSON.stringify(assetHistory));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
 }
 
 function openAssetModal(id){
@@ -1543,99 +2380,177 @@ function deleteAsset(id){
   recordAssetSnapshot();
   renderAssets();
 }
-function saveAssetsData(){ localStorage.setItem('rdstr_assets', JSON.stringify(assets)); }
+function saveAssetsData(){
+  localStorage.setItem('rdstr_assets', JSON.stringify(assets));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
+}
 
 // ═══════════════════════════════
 //  FAB / QUICK ADD
 // ═══════════════════════════════
 const EXPENSE_CATS = [
-  { v:'Food', label:'🍜 Food 餐饮' },
-  { v:'Shop', label:'🛍️ Shop 购物' },
-  { v:'Parents', label:'👨‍👩‍👧 Parents 父母' },
-  { v:'Car', label:'🚗 Car 车辆' },
-  { v:'Health', label:'🏥 Health 医疗' },
-  { v:'Home', label:'🏠 Home 居家' },
-  { v:'Fun', label:'🎮 Fun 娱乐' },
-  { v:'Travel', label:'✈️ Travel 旅行' },
-  { v:'__custom__', label:'✏️ 自定义…' }
+  { v:'Food', icon:'🍜', label:'Food' },
+  { v:'Shop', icon:'🛍️', label:'Shop' },
+  { v:'Parents', icon:'👨‍👩‍👧', label:'Parents' },
+  { v:'Car', icon:'🚗', label:'Car' },
+  { v:'Health', icon:'🏥', label:'Health' },
+  { v:'Home', icon:'🏠', label:'Home' },
+  { v:'Fun', icon:'🎮', label:'Fun' },
+  { v:'Travel', icon:'✈️', label:'Travel' },
+  { v:'__custom__', icon:'✏️', label:'自定义' }
 ];
 const INCOME_CATS = [
-  { v:'Wage', label:'💼 Wage 工资' },
-  { v:'兼职', label:'🖥️ 兼职' },
-  { v:'红包', label:'🧧 红包' },
-  { v:'理财', label:'📈 理财（可为负数）' },
-  { v:'__custom__', label:'✏️ 自定义…' }
+  { v:'Wage', icon:'💼', label:'Wage' },
+  { v:'兼职', icon:'🖥️', label:'兼职' },
+  { v:'红包', icon:'🧧', label:'红包' },
+  { v:'理财', icon:'📈', label:'理财' },
+  { v:'__custom__', icon:'✏️', label:'自定义' }
 ];
+
+// ── Context-aware FAB: behavior depends on which page is currently active ──
+function contextAddAction(){
+  const activePage = document.querySelector('.page.active');
+  const pageId = activePage ? activePage.id : '';
+  if(pageId==='page-transactions'){
+    openTxModal();
+  } else if(pageId==='page-assets'){
+    openAssetModal();
+  } else {
+    openAddChoice();
+  }
+}
 
 function openAddChoice(){ document.getElementById('choiceModal').classList.add('open'); }
 function closeChoiceModal(e){ if(!e || e.target===document.getElementById('choiceModal')) document.getElementById('choiceModal').classList.remove('open'); }
 
-function populateCategorySelect(){
-  const list = quickTxType==='支出' ? EXPENSE_CATS : INCOME_CATS;
-  const sel = document.getElementById('txCategorySelect');
-  sel.innerHTML = list.map(c=>`<option value="${c.v}">${c.label}</option>`).join('');
-  onCategorySelectChange();
+// ── Keypad-driven amount state ──
+let keypadValue = '0';
+function renderKeypadValue(){
+  document.getElementById('amountText').textContent = keypadValue;
 }
-function onCategorySelectChange(){
-  const sel = document.getElementById('txCategorySelect');
+function keypadInput(ch){
+  if(ch==='.'){
+    if(keypadValue.includes('.')) return;
+    keypadValue += '.';
+  } else {
+    if(keypadValue==='0') keypadValue = ch;
+    else {
+      // limit to 2 decimal places
+      const parts = keypadValue.split('.');
+      if(parts[1] && parts[1].length>=2) return;
+      if(keypadValue.replace('.','').length>=9) return; // sane upper bound
+      keypadValue += ch;
+    }
+  }
+  renderKeypadValue();
+}
+function keypadDelete(){
+  keypadValue = keypadValue.length>1 ? keypadValue.slice(0,-1) : '0';
+  renderKeypadValue();
+}
+function resetKeypad(){
+  keypadValue = '0';
+  renderKeypadValue();
+}
+
+// ── Icon-grid category selection ──
+let selectedCategory = '';
+let isCustomCategory = false;
+
+function renderCatIconGrid(){
+  const list = quickTxType==='支出' ? EXPENSE_CATS : INCOME_CATS;
+  const grid = document.getElementById('catIconGrid');
+  grid.innerHTML = list.map(c=>{
+    const isSel = (c.v==='__custom__' && isCustomCategory) || (selectedCategory===c.v && !isCustomCategory);
+    return `<div class="cat-icon-item ${isSel?'selected':''}" onclick="selectCategory('${c.v}')">
+      <div class="cat-icon-circle">${c.icon}</div>
+      <div class="cat-icon-label">${escapeHtml(c.label)}</div>
+    </div>`;
+  }).join('');
   const customInput = document.getElementById('txCategoryCustom');
-  if(sel.value==='__custom__'){
+  if(isCustomCategory){
     customInput.classList.add('show');
-    customInput.focus();
   } else {
     customInput.classList.remove('show');
   }
 }
-function getSelectedCategory(){
-  const sel = document.getElementById('txCategorySelect');
-  if(sel.value==='__custom__'){
-    return document.getElementById('txCategoryCustom').value.trim();
+function selectCategory(v){
+  if(v==='__custom__'){
+    isCustomCategory = true;
+    selectedCategory = '';
+    renderCatIconGrid();
+    setTimeout(()=>document.getElementById('txCategoryCustom').focus(), 50);
+  } else {
+    isCustomCategory = false;
+    selectedCategory = v;
+    document.getElementById('txCategoryCustom').value='';
+    renderCatIconGrid();
   }
-  return sel.value;
+}
+function onCustomCatInput(){
+  selectedCategory = document.getElementById('txCategoryCustom').value.trim();
+}
+function getSelectedCategory(){
+  if(isCustomCategory) return document.getElementById('txCategoryCustom').value.trim();
+  return selectedCategory;
 }
 
 function setTxType(t){
   quickTxType = t;
   document.getElementById('segExpense').classList.toggle('active', t==='支出');
   document.getElementById('segIncome').classList.toggle('active', t==='收入');
-  // Allow negative amounts only for 理财 (investment) income category
-  populateCategorySelect();
+  // default-select the first category for the new type
+  const list = quickTxType==='支出' ? EXPENSE_CATS : INCOME_CATS;
+  isCustomCategory = false;
+  selectedCategory = list[0].v;
+  renderCatIconGrid();
 }
 function openTxModal(){
-  quickTxType='支出'; setTxType('支出');
-  document.getElementById('txAmount').value='';
+  resetKeypad();
+  quickTxType='支出';
+  setTxType('支出');
   document.getElementById('txCategoryCustom').value='';
   document.getElementById('txNote').value='';
-  const today = new Date();
-  document.getElementById('txDate').value = `${today.getFullYear()}-${pad2(today.getMonth()+1)}-${pad2(today.getDate())}`;
+  document.getElementById('txDate').value = nowAsDatetimeLocal();
   document.getElementById('txModal').classList.add('open');
+}
+function nowAsDatetimeLocal(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 function closeTxModal(e){ if(!e || e.target===document.getElementById('txModal')) document.getElementById('txModal').classList.remove('open'); }
 function saveQuickTx(){
-  let amount = parseFloat(document.getElementById('txAmount').value);
+  let amount = parseFloat(keypadValue);
   const category = getSelectedCategory();
-  const date = document.getElementById('txDate').value;
+  const dateTimeRaw = document.getElementById('txDate').value; // "YYYY-MM-DDTHH:mm:ss" from <input type="datetime-local" step="1">
   const note = document.getElementById('txNote').value.trim();
 
-  if(isNaN(amount) || amount===0){ showToast('⚠️ 请填写有效金额'); return; }
-  if(!category){ showToast('⚠️ 请填写类别'); return; }
-  if(!date){ showToast('⚠️ 请选择日期'); return; }
+  if(isNaN(amount) || amount===0){ showToast(t('toastInvalidAmount')); return; }
+  if(!category){ showToast(t('toastNeedCategory')); return; }
+  if(!dateTimeRaw){ showToast(t('toastNeedDate')); return; }
+
+  // Store the full timestamp (date + time, down to the second) as `date`.
+  // All existing day/month/year grouping logic elsewhere in the app uses
+  // `t.date.slice(0,N)` or `new Date(t.date)`, both of which still work
+  // correctly with this longer "YYYY-MM-DDTHH:mm:ss" string.
+  const dateTime = dateTimeRaw.length===16 ? dateTimeRaw + ':00' : dateTimeRaw; // pad missing seconds if browser omits them
 
   // 理财 (investment) income can be negative (representing a loss). All other
   // categories are stored as positive magnitudes — direction is carried by `type`.
   const allowsNegative = (quickTxType==='收入' && category==='理财');
   if(!allowsNegative) amount = Math.abs(amount);
 
-  const t = { id:'t'+Date.now()+Math.random(), date, type:quickTxType, amount, category, note };
-  if(transactions.some(x=>txFingerprint(x)===txFingerprint(t))){
-    showToast('⚠️ 该记录已存在，未重复添加');
+  const t_ = { id:'t'+Date.now()+Math.random(), date: dateTime, type:quickTxType, amount, category, note };
+  if(transactions.some(x=>txFingerprint(x)===txFingerprint(t_))){
+    showToast(t('toastDuplicate'));
     closeTxModal();
     return;
   }
-  transactions.push(t);
+  transactions.push(t_);
   localStorage.setItem('rdstr_tx', JSON.stringify(transactions));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
   closeTxModal();
-  showToast('✅ 已添加 1 笔'+quickTxType);
+  showToast(t('toastTxAdded', { type: quickTxType==='支出' ? t('typeExpense') : t('typeIncome') }));
   refreshOverview();
   if(document.getElementById('page-transactions').classList.contains('active')) renderTxPage();
 }
@@ -1693,8 +2608,8 @@ function parseCSV(text, bannerId){
   const parsed=[]; const failed=[];
   for(let i=1;i<lines.length;i++){
     const cols = splitCSVLine(lines[i]);
-    const t = parseRowMapped(cols, idx);
-    if(t) parsed.push(t); else failed.push(lines[i]);
+    const txRow = parseRowMapped(cols, idx);
+    if(txRow) parsed.push(txRow); else failed.push(lines[i]);
   }
   importData(parsed, bannerId, failed.length);
 }
@@ -1711,8 +2626,8 @@ function parsePaste(){
   const parsed=[]; const failed=[];
   for(let i=start;i<lines.length;i++){
     const cols = lines[i].split(/\t|,/).map(c=>c.trim());
-    const t = parseRowMapped(cols, idx);
-    if(t) parsed.push(t); else failed.push(lines[i]);
+    const txRow = parseRowMapped(cols, idx);
+    if(txRow) parsed.push(txRow); else failed.push(lines[i]);
   }
   importData(parsed, 'dedupBanner2', failed.length);
 }
@@ -1815,6 +2730,7 @@ function importData(parsed, bannerId, failedCount){
   }
   transactions = [...transactions, ...newTxs];
   localStorage.setItem('rdstr_tx', JSON.stringify(transactions));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
 
   banner.className = 'banner show ' + (dupTxs.length||failedCount ? 'banner-warn' : 'banner-ok');
   let msg = `✅ 成功导入 <strong>${newTxs.length}</strong> 条`;
@@ -1829,6 +2745,7 @@ function clearAllData(){
   if(!confirm('确认清空所有交易记录？')) return;
   transactions = [];
   localStorage.setItem('rdstr_tx', JSON.stringify(transactions));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
   showToast('🗑️ 已清空所有交易记录');
   refreshOverview();
 }
@@ -1875,7 +2792,7 @@ function exportData(format){
         downloadFile(`Roadster_资产数据_${stamp}.csv`, assetCsv, 'text/csv;charset=utf-8');
       }, 400);
     }
-    showToast('✅ 正在导出 CSV 文件…');
+    showToast('✅ CSV 已导出，请查看下载文件夹');
   } else if(format==='json'){
     const payload = {
       exportedAt: new Date().toISOString(),
@@ -1920,6 +2837,15 @@ function loadSampleData(){
 // ═══════════════════════════════
 //  SHARED CHARTS
 // ═══════════════════════════════
+// Register datalabels plugin globally but keep it OFF by default — we only
+// want labels on pie/doughnut charts, not on line/bar charts where it would
+// clutter the trend visuals. Each chart explicitly opts in via its own
+// `plugins.datalabels` config instead.
+if(typeof ChartDataLabels !== 'undefined'){
+  Chart.register(ChartDataLabels);
+  Chart.defaults.set('plugins.datalabels', { display:false });
+}
+
 function buildPie(canvasId, data, legendId){
   const ctx = document.getElementById(canvasId);
   // Doughnut/pie slices can't represent negative magnitudes (e.g. an investment
@@ -1929,12 +2855,34 @@ function buildPie(canvasId, data, legendId){
   if(!keys.length){ ctx.style.display='none'; document.getElementById(legendId).innerHTML='<div style="font-size:12px;color:var(--label-4)">暂无数据</div>'; return; }
   ctx.style.display='';
   if(charts[canvasId]) charts[canvasId].destroy();
+  const total = keys.reduce((s,k)=>s+data[k],0);
   charts[canvasId] = new Chart(ctx, {
     type:'doughnut',
-    data:{ labels:keys, datasets:[{ data:keys.map(k=>data[k]), backgroundColor:PALETTE.slice(0,keys.length), borderWidth:0, hoverOffset:8 }] },
-    options:{ responsive:true, cutout:'64%', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)}`}} } }
+    data:{ labels:keys, datasets:[{ data:keys.map(k=>data[k]), backgroundColor:PALETTE.slice(0,keys.length), borderWidth:2, borderColor:cssVar('--surface-solid'), hoverOffset:8 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'58%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)}`}},
+        datalabels:{
+          display:true,
+          color:'#fff',
+          font:{ size:11, weight:700 },
+          formatter:(value)=>{
+            const pct = total>0 ? (value/total*100) : 0;
+            if(pct < 6) return ''; // hide labels on slivers too thin to read
+            return pct.toFixed(0)+'%';
+          },
+          textStrokeColor:'rgba(0,0,0,0.25)',
+          textStrokeWidth:2
+        }
+      }
+    }
   });
-  document.getElementById(legendId).innerHTML = keys.map((k,i)=>`<div class="legend-chip"><div class="legend-dot" style="background:${PALETTE[i]}"></div>${escapeHtml(k)}</div>`).join('');
+  document.getElementById(legendId).innerHTML = keys.map((k,i)=>{
+    const pct = total>0 ? (data[k]/total*100) : 0;
+    return `<div class="legend-chip"><div class="legend-dot" style="background:${PALETTE[i]}"></div>${escapeHtml(k)} <span style="color:var(--label-4);font-weight:500">¥${fmt(data[k])} · ${pct.toFixed(0)}%</span></div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════
@@ -2057,10 +3005,10 @@ function renderHealthScore(stats){
 
   scoreEl.textContent = totalScore;
   let label, gradeColor;
-  if(totalScore>=85){ label='优秀 · 财务状况稳健'; gradeColor='#2fb380'; }
-  else if(totalScore>=70){ label='良好 · 整体健康有提升空间'; gradeColor='#5e7ce2'; }
-  else if(totalScore>=50){ label='一般 · 建议关注收支结构'; gradeColor='#f5a623'; }
-  else { label='需要关注 · 建议调整消费习惯'; gradeColor='#ef4458'; }
+  if(totalScore>=85){ label='优秀 · 财务状况稳健'; gradeColor=cssVar('--green'); }
+  else if(totalScore>=70){ label='良好 · 整体健康有提升空间'; gradeColor=cssVar('--blue'); }
+  else if(totalScore>=50){ label='一般 · 建议关注收支结构'; gradeColor=cssVar('--amber'); }
+  else { label='需要关注 · 建议调整消费习惯'; gradeColor=cssVar('--red'); }
   labelEl.textContent = label;
 
   // score bar (5 segments)
@@ -2072,7 +3020,7 @@ function renderHealthScore(stats){
   // breakdown list
   breakdownEl.innerHTML = dims.map(d=>{
     const pct = Math.round(d.score);
-    const barColor = pct>=70 ? '#2fb380' : pct>=45 ? '#f5a623' : '#ef4458';
+    const barColor = pct>=70 ? cssVar('--green') : pct>=45 ? cssVar('--amber') : cssVar('--red');
     return `<div style="margin-bottom:16px">
       <div class="flex-between" style="margin-bottom:6px">
         <span style="font-size:13.5px;font-weight:700">${d.key}</span>
@@ -2193,14 +3141,15 @@ function renderSuggestions(stats){
 // ── PREDICTION (simple linear regression on monthly net) ──
 function renderPrediction(stats){
   const emptyEl = document.getElementById('predictionEmpty');
+  const wrapEl = document.getElementById('predictionWrap');
   const canvas = document.getElementById('predictionChart');
   const summaryEl = document.getElementById('predictionSummary');
 
   if(!stats || stats.months.length<2){
-    emptyEl.style.display=''; canvas.style.display='none'; summaryEl.style.display='none';
+    emptyEl.style.display=''; wrapEl.style.display='none'; summaryEl.style.display='none';
     return;
   }
-  emptyEl.style.display='none'; canvas.style.display=''; summaryEl.style.display='';
+  emptyEl.style.display='none'; wrapEl.style.display=''; summaryEl.style.display='';
 
   const months = stats.months;
   const expenseSeries = months.map(k=>stats.monthMap[k].expense);
@@ -2239,21 +3188,22 @@ function renderPrediction(stats){
   const incPred = Array(months.length-1).fill(null).concat([incomeSeries[months.length-1]], futureLabels.map((_,i)=>Math.max(0, incReg.a + incReg.b*(months.length+i))));
 
   if(charts.prediction) charts.prediction.destroy();
+  const predRed = cssVar('--red'), predGreen = cssVar('--green');
   charts.prediction = new Chart(canvas, {
     type:'line',
     data:{
       labels: allLabels,
       datasets:[
-        { label:'历史支出', data:expHistory, borderColor:'#ef4458', backgroundColor:'transparent', tension:.4, pointRadius:3, borderWidth:2.5 },
-        { label:'预测支出', data:expPred, borderColor:'#ef4458', backgroundColor:'transparent', borderDash:[6,4], tension:.4, pointRadius:3, borderWidth:2 },
-        { label:'历史收入', data:incHistory, borderColor:'#2fb380', backgroundColor:'transparent', tension:.4, pointRadius:3, borderWidth:2.5 },
-        { label:'预测收入', data:incPred, borderColor:'#2fb380', backgroundColor:'transparent', borderDash:[6,4], tension:.4, pointRadius:3, borderWidth:2 }
+        { label:'历史支出', data:expHistory, borderColor:predRed, backgroundColor:'transparent', tension:.4, pointRadius:3, borderWidth:2.5 },
+        { label:'预测支出', data:expPred, borderColor:predRed, backgroundColor:'transparent', borderDash:[6,4], tension:.4, pointRadius:3, borderWidth:2 },
+        { label:'历史收入', data:incHistory, borderColor:predGreen, backgroundColor:'transparent', tension:.4, pointRadius:3, borderWidth:2.5 },
+        { label:'预测收入', data:incPred, borderColor:predGreen, backgroundColor:'transparent', borderDash:[6,4], tension:.4, pointRadius:3, borderWidth:2 }
       ]
     },
     options:{
-      responsive:true, interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{display:true,position:'top',labels:{font:{size:10.5,weight:600},boxWidth:8,usePointStyle:true,padding:10}} },
-      scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:10},callback:v=>'¥'+fmtK(v)}} }
+      responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:true,position:'top',labels:{font:{size:10.5,weight:600},boxWidth:8,usePointStyle:true,padding:10,color:cssVar('--label-2')}} },
+      scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:cssVar('--label-4')}}, y:{grid:{color:cssVar('--separator')},ticks:{font:{size:10},callback:v=>'¥'+fmtK(v),color:cssVar('--label-4')}} }
     }
   });
 
@@ -2294,16 +3244,25 @@ function renderWeekdayChart(stats){
   const labels = ['周日','周一','周二','周三','周四','周五','周六'];
   const data = stats.weekdayTotals;
   const maxVal = Math.max(...data);
-  const colors = data.map(v=> v===maxVal && v>0 ? '#ef4458' : 'rgba(94,124,226,.55)');
+  const redColor = cssVar('--red'), blueColor = cssVar('--blue');
+  const colors = data.map(v=> v===maxVal && v>0 ? redColor : hexToRgba(blueColor,0.55));
 
   if(charts.weekday) charts.weekday.destroy();
   charts.weekday = new Chart(canvas, {
     type:'bar',
     data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:8, borderSkipped:false }] },
     options:{
-      responsive:true,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)} · ${stats.weekdayCounts[c.dataIndex]}笔`}} },
-      scales:{ x:{grid:{display:false},ticks:{font:{size:11}}}, y:{grid:{color:'rgba(120,120,120,.12)'},ticks:{font:{size:10},callback:v=>'¥'+fmtK(v)}} }
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`  ¥${fmt(c.raw)} · ${stats.weekdayCounts[c.dataIndex]}笔`}},
+        datalabels:{
+          display:true, anchor:'end', align:'top', offset:2,
+          color:cssVar('--label-3'), font:{ size:10, weight:700 },
+          formatter:(value)=> value>0 ? '¥'+fmtK(value) : ''
+        }
+      },
+      scales:{ x:{grid:{display:false},ticks:{font:{size:11},color:cssVar('--label-4')}}, y:{grid:{color:cssVar('--separator')},ticks:{font:{size:10},callback:v=>'¥'+fmtK(v),color:cssVar('--label-4')}} }
     }
   });
 }
@@ -2329,18 +3288,426 @@ function fmtDateShort(iso){
   return `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
 
-let toastTimer;
+let toastTimer = null;
+let toastToken = 0;
 function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+  const toastEl = document.getElementById('toast');
+  if(!toastEl) return;
+
+  // Use an incrementing token instead of trusting a single setTimeout.
+  // Browsers throttle/delay timers on background tabs or during native UI
+  // interruptions (e.g. a file-download prompt triggered by exportData()),
+  // which can make a toast appear to "never disappear." A token guarantees
+  // that even a late-firing timer from a previous call can't incorrectly
+  // hide (or fail to hide) the *current* toast.
+  toastToken++;
+  const myToken = toastToken;
+
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(()=>{
+    if(myToken === toastToken){
+      toastEl.classList.remove('show');
+    }
+  }, 2400);
 }
+
+// Safety net: if the tab was backgrounded (e.g. during a download) and timers
+// were throttled, force-hide any stale toast as soon as the tab regains focus.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    const toastEl = document.getElementById('toast');
+    if(toastEl && toastEl.classList.contains('show')){
+      // Give it a brief moment in case a toast was *just* triggered on focus,
+      // otherwise clear it — it's almost certainly stale.
+      setTimeout(()=>{
+        if(toastEl.classList.contains('show')) toastEl.classList.remove('show');
+      }, 2400);
+    }
+  }
+});
 
 // ═══════════════════════════════
 //  INIT
 // ═══════════════════════════════
+initTheme();
+applyI18n();
 refreshOverview();
+
+</script>
+<script type="module">
+// ═══════════════════════════════════════════════════════════
+//  ROADSTER · Firebase Integration
+//  Auth (email/password) + Firestore sync
+// ═══════════════════════════════════════════════════════════
+
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, sendPasswordResetEmail, onAuthStateChanged, updateProfile
+} from 'firebase/auth';
+import {
+  getFirestore, doc, getDoc, setDoc, serverTimestamp
+} from 'firebase/firestore';
+
+// ─────────────────────────────────────────────────────────
+//  🔧  Firebase 配置（已填入你的项目信息）
+// ─────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCFCnb-K042ZmU-W-CozLCA8PhznNLZ-MA",
+  authDomain:        "roadster988.firebaseapp.com",
+  projectId:         "roadster988",
+  storageBucket:     "roadster988.firebasestorage.app",
+  messagingSenderId: "447138926799",
+  appId:             "1:447138926799:web:585c60bd99dd53f807a7ba",
+  measurementId:     "G-0BML53ZJCJ"
+};
+// ─────────────────────────────────────────────────────────
+
+const firebaseApp = initializeApp(FIREBASE_CONFIG);
+const auth        = getAuth(firebaseApp);
+const db          = getFirestore(firebaseApp);
+
+// ── Firestore path: users/{uid}/data/finance
+function userDocRef(uid){ return doc(db, 'users', uid, 'data', 'finance'); }
+
+// ══════════════════════════════════════════
+//  AUTH STATE LISTENER — runs on every page load
+// ══════════════════════════════════════════
+let currentUser = null;
+let hasPendingLocalData = false;
+
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  if(user){
+    renderAuthBtn(user);
+    await loadCloudData(user);
+  } else {
+    renderAuthBtn(null);
+  }
+});
+
+// ══════════════════════════════════════════
+//  TOP BAR / MOBILE AUTH BUTTON RENDERING
+// ══════════════════════════════════════════
+function renderAuthBtn(user){
+  const desktopSlot = document.getElementById('authBtnDesktop');
+  const mobileSlot  = document.getElementById('authBtnMobile');
+  if(!desktopSlot) return;
+
+  if(user){
+    const initial = (user.displayName || user.email || '?')[0].toUpperCase();
+    const avatarHtml = `<button class="auth-avatar-btn" onclick="openAuthModal()" title="${user.email}" style="width:32px;height:32px;border-radius:50%;background:var(--grad-primary);color:white;border:none;font-size:13px;font-weight:800;cursor:pointer">${initial}</button>`;
+    desktopSlot.innerHTML = avatarHtml;
+    mobileSlot.innerHTML  = avatarHtml.replace('32px','30px').replace('32px','30px');
+  } else {
+    desktopSlot.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="openAuthModal()">🔑 登录</button>`;
+    mobileSlot.innerHTML  = `<button class="icon-btn" onclick="openAuthModal()" title="登录">🔑</button>`;
+  }
+}
+
+// ══════════════════════════════════════════
+//  AUTH MODAL CONTROLS
+// ══════════════════════════════════════════
+let authMode = 'login'; // 'login' | 'register' | 'reset'
+
+window.openAuthModal = function(){
+  const modal = document.getElementById('authModal');
+  if(!modal) return;
+  if(currentUser){
+    renderLoggedInSection();
+  } else {
+    switchAuthMode('login');
+  }
+  modal.classList.add('open');
+};
+
+window.closeAuthModal = function(e){
+  if(!e || e.target === document.getElementById('authModal')){
+    document.getElementById('authModal').classList.remove('open');
+  }
+};
+
+window.switchAuthMode = function(mode){
+  authMode = mode;
+  const loginSection    = document.getElementById('authTabBar');
+  const loggedInSection = document.getElementById('loggedInSection');
+  const nameField       = document.getElementById('authNameField');
+  const forgotBtn       = document.getElementById('forgotPwdBtn');
+  const resetSection    = document.getElementById('resetSection');
+  const submitBtn       = document.getElementById('authSubmitBtn');
+  const submitLabel     = document.getElementById('authSubmitLabel');
+  const modeDesc        = document.getElementById('authModeDesc');
+  const pwdField        = document.getElementById('authPasswordField');
+  const tabLogin        = document.getElementById('tabLogin');
+  const tabReg          = document.getElementById('tabRegister');
+  clearAuthError();
+
+  loggedInSection.style.display = 'none';
+  loginSection.style.display    = '';
+  resetSection.style.display    = 'none';
+  submitBtn.style.display       = '';
+  forgotBtn.style.display       = '';
+
+  if(mode === 'login'){
+    nameField.style.display  = 'none';
+    pwdField.style.display   = '';
+    submitLabel.textContent  = '登录';
+    modeDesc.textContent     = '登录后数据安全同步到云端';
+    tabLogin.classList.add('active'); tabReg.classList.remove('active');
+    document.getElementById('authPassword').autocomplete = 'current-password';
+  } else if(mode === 'register'){
+    nameField.style.display  = '';
+    pwdField.style.display   = '';
+    submitLabel.textContent  = '创建账号';
+    modeDesc.textContent     = '注册后数据自动同步，随时换设备';
+    tabLogin.classList.remove('active'); tabReg.classList.add('active');
+    document.getElementById('authPassword').autocomplete = 'new-password';
+  } else if(mode === 'reset'){
+    loginSection.style.display = 'none';
+    submitBtn.style.display    = 'none';
+    forgotBtn.style.display    = 'none';
+    resetSection.style.display = '';
+    modeDesc.textContent       = '重置密码';
+  }
+};
+
+function renderLoggedInSection(){
+  const loginSection    = document.getElementById('authTabBar');
+  const loggedInSection = document.getElementById('loggedInSection');
+  const submitBtn       = document.getElementById('authSubmitBtn');
+  const forgotBtn       = document.getElementById('forgotPwdBtn');
+  const nameField       = document.getElementById('authNameField');
+  const pwdField        = document.getElementById('authPasswordField');
+  const modeDesc        = document.getElementById('authModeDesc');
+  const resetSection    = document.getElementById('resetSection');
+  clearAuthError();
+
+  loginSection.style.display    = 'none';
+  loggedInSection.style.display = '';
+  submitBtn.style.display       = 'none';
+  forgotBtn.style.display       = 'none';
+  nameField.style.display       = 'none';
+  pwdField.style.display        = 'none';
+  resetSection.style.display    = 'none';
+  modeDesc.textContent          = '已登录';
+
+  const initial = (currentUser.displayName || currentUser.email || '?')[0].toUpperCase();
+  document.getElementById('authUserCard').innerHTML = `
+    <div class="auth-avatar">${initial}</div>
+    <div class="auth-user-info">
+      <div class="auth-user-name">${escHtml(currentUser.displayName || '用户')}</div>
+      <div class="auth-user-email">${escHtml(currentUser.email)}</div>
+    </div>`;
+
+  updateSyncStatusRow();
+}
+
+function updateSyncStatusRow(){
+  const row = document.getElementById('syncStatusRow');
+  if(!row || !currentUser) return;
+  row.innerHTML = `<span><span class="sync-dot pending"></span>检查同步状态…</span>`;
+  getDoc(userDocRef(currentUser.uid)).then(snap=>{
+    if(snap.exists()){
+      const d = snap.data();
+      const lastSync = d.updatedAt?.toDate?.()?.toLocaleString('zh-CN') || '未知';
+      row.innerHTML = `<span><span class="sync-dot synced"></span>云端已同步</span><span style="color:var(--label-4);font-size:11px">${lastSync}</span>`;
+    } else {
+      row.innerHTML = `<span><span class="sync-dot pending"></span>云端暂无数据，请点击同步</span>`;
+    }
+  }).catch(()=>{
+    row.innerHTML = `<span><span class="sync-dot error"></span>读取失败，检查网络</span>`;
+  });
+}
+
+// ══════════════════════════════════════════
+//  AUTH ACTIONS: LOGIN / REGISTER / RESET
+// ══════════════════════════════════════════
+window.submitAuth = async function(){
+  const email = document.getElementById('authEmail').value.trim();
+  const pwd   = document.getElementById('authPassword').value;
+  const name  = document.getElementById('authName')?.value.trim() || '';
+  if(!email){ showAuthError('请填写邮箱'); return; }
+  if(!pwd || pwd.length < 6){ showAuthError('密码至少 6 位'); return; }
+
+  setAuthLoading(true);
+  clearAuthError();
+  try {
+    if(authMode === 'register'){
+      const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+      if(name) await updateProfile(cred.user, { displayName: name });
+      // Auto-sync local data on first register
+      await syncToCloud(true);
+      window.showToast('🎉 注册成功，数据已同步！');
+    } else {
+      await signInWithEmailAndPassword(auth, email, pwd);
+      window.showToast('✅ 登录成功');
+    }
+    document.getElementById('authModal').classList.remove('open');
+  } catch(err){
+    showAuthError(firebaseErrMsg(err.code));
+  } finally {
+    setAuthLoading(false);
+  }
+};
+
+window.sendPasswordReset = async function(){
+  const email = document.getElementById('resetEmail').value.trim();
+  if(!email){ showAuthError('请填写邮箱'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    window.showToast('📧 重置邮件已发送，请查收');
+    switchAuthMode('login');
+  } catch(err){
+    showAuthError(firebaseErrMsg(err.code));
+  }
+};
+
+window.signOutUser = async function(){
+  await signOut(auth);
+  window.showToast('👋 已退出登录');
+  document.getElementById('authModal').classList.remove('open');
+};
+
+window.togglePwdVisibility = function(){
+  const input = document.getElementById('authPassword');
+  const btn   = document.getElementById('pwdEyeBtn');
+  if(input.type === 'password'){ input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+};
+
+function setAuthLoading(on){
+  const btn = document.getElementById('authSubmitBtn');
+  if(!btn) return;
+  if(on){ btn.classList.add('btn-loading'); btn.innerHTML = '<span class="spin">↻</span> 处理中…'; }
+  else  { btn.classList.remove('btn-loading'); btn.innerHTML = `<span id="authSubmitLabel">${authMode==='register'?'创建账号':'登录'}</span>`; }
+}
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+function clearAuthError(){
+  const el = document.getElementById('authError');
+  el.textContent = ''; el.classList.remove('show');
+}
+function firebaseErrMsg(code){
+  const map = {
+    'auth/user-not-found':      '该邮箱尚未注册',
+    'auth/wrong-password':      '密码错误',
+    'auth/invalid-credential':  '邮箱或密码不正确',
+    'auth/email-already-in-use':'该邮箱已被注册',
+    'auth/weak-password':       '密码强度太弱，至少 6 位',
+    'auth/invalid-email':       '邮箱格式不正确',
+    'auth/too-many-requests':   '尝试次数过多，请稍后再试',
+    'auth/network-request-failed':'网络连接失败，请检查网络',
+  };
+  return map[code] || `操作失败（${code}）`;
+}
+function escHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// ══════════════════════════════════════════
+//  CLOUD SYNC: UPLOAD (local → Firestore)
+// ══════════════════════════════════════════
+window.syncToCloud = async function(silent = false){
+  if(!currentUser){ window.showToast('⚠️ 请先登录'); return; }
+
+  // Read current local data from the main app's variables
+  // (exposed as window globals via app.js)
+  const payload = {
+    transactions:  window._rdstrTransactions  || [],
+    assets:        window._rdstrAssets        || [],
+    assetHistory:  window._rdstrAssetHistory  || [],
+    updatedAt:     serverTimestamp(),
+    clientVersion: '1.0'
+  };
+
+  showSyncBanner('☁️ 同步中…', 'pending');
+  try {
+    await setDoc(userDocRef(currentUser.uid), payload, { merge: true });
+    showSyncBanner('✅ 已同步', 'synced');
+    if(!silent) window.showToast('✅ 数据已同步到云端');
+    setTimeout(()=> hideSyncBanner(), 3000);
+    updateSyncStatusRow();
+  } catch(err){
+    showSyncBanner('❌ 同步失败', 'error');
+    if(!silent) window.showToast('❌ 同步失败：' + err.message);
+    setTimeout(()=> hideSyncBanner(), 4000);
+  }
+};
+
+// ══════════════════════════════════════════
+//  CLOUD SYNC: DOWNLOAD (Firestore → local)
+// ══════════════════════════════════════════
+async function loadCloudData(user){
+  showSyncBanner('☁️ 读取云端数据…', 'pending');
+  try {
+    const snap = await getDoc(userDocRef(user.uid));
+    hideSyncBanner();
+    if(!snap.exists()) return; // No cloud data yet, keep local
+
+    const data = snap.data();
+    const cloudTxs   = data.transactions  || [];
+    const cloudAssets = data.assets       || [];
+    const cloudHist   = data.assetHistory || [];
+
+    // Merge strategy: union by transaction fingerprint (deduplicate),
+    // then persist merged result back to localStorage so the main app
+    // can access it immediately.
+    const localTxs    = window._rdstrTransactions || [];
+    const localAssets = window._rdstrAssets || [];
+    const localHist   = window._rdstrAssetHistory || [];
+
+    // Transactions: deduplicate by fingerprint (date|type|amount|category)
+    const fp = t => `${(t.date||'').slice(0,10)}|${t.type}|${t.amount}|${t.category}`;
+    const seen = new Set(cloudTxs.map(fp));
+    const merged = [...cloudTxs];
+    localTxs.forEach(t => { if(!seen.has(fp(t))){ merged.push(t); seen.add(fp(t)); }});
+
+    // Assets: cloud wins (most recently updated authoritative copy)
+    const finalAssets = cloudAssets.length ? cloudAssets : localAssets;
+    const finalHist   = cloudHist.length   ? cloudHist   : localHist;
+
+    // Persist merged data back to localStorage and update main app state
+    localStorage.setItem('rdstr_tx',            JSON.stringify(merged));
+    localStorage.setItem('rdstr_assets',         JSON.stringify(finalAssets));
+    localStorage.setItem('rdstr_asset_history',  JSON.stringify(finalHist));
+
+    // Notify the main app to reload from localStorage
+    if(typeof window._rdstrReloadFromStorage === 'function'){
+      window._rdstrReloadFromStorage();
+    }
+    window.showToast(`☁️ 已从云端加载 ${merged.length} 条记录`);
+  } catch(err){
+    hideSyncBanner();
+    console.warn('[Roadster] Cloud load failed:', err.message);
+  }
+}
+
+// ══════════════════════════════════════════
+//  AUTO-SYNC after every data mutation
+//  Called by app.js after any write to localStorage
+// ══════════════════════════════════════════
+window._rdstrAutoSync = function(){
+  if(!currentUser) return; // Only sync when logged in
+  // Debounce: don't hammer Firestore on rapid-fire writes
+  clearTimeout(window._rdstrSyncTimer);
+  window._rdstrSyncTimer = setTimeout(()=> window.syncToCloud(true), 2000);
+};
+
+// ══════════════════════════════════════════
+//  SYNC BANNER (persistent top indicator)
+// ══════════════════════════════════════════
+function showSyncBanner(msg, state){
+  const el = document.getElementById('syncBanner');
+  if(!el) return;
+  el.textContent = msg; el.className = 'sync-banner show';
+}
+function hideSyncBanner(){
+  const el = document.getElementById('syncBanner');
+  if(el) el.classList.remove('show');
+}
 
 </script>
 </body>
