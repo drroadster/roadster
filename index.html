@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Roadster · 个人财富驾驶舱</title>
+<link rel="icon" type="image/svg+xml" href="roadster-icon.svg">
+<link rel="apple-touch-icon" href="roadster-icon.svg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <!-- Firebase SDK — ES Module CDN (v12) -->
@@ -449,33 +451,93 @@ input, select, textarea { font-family: inherit; }
 /* ═══════════════ HERO / SUMMARY CARDS ═══════════════ */
 .hero-card {
   border-radius: var(--r-xl);
-  padding: 26px 24px;
+  padding: 28px 26px;
   position: relative;
   overflow: hidden;
   color: white;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.1);
+  isolation: isolate;
 }
 .hero-card.grad-dark { background: var(--grad-dark); }
 .hero-card.grad-primary { background: var(--grad-primary); }
+
+/* Deep rose-crimson — muted, sophisticated, not alarm-red */
 .hero-card.grad-red {
-  background: linear-gradient(155deg, #3a0d10 0%, #8a1722 45%, #d6334a 100%);
+  background: linear-gradient(150deg, #1a0508 0%, #4a0f18 40%, #7d1a2e 75%, #a82840 100%);
 }
 .hero-card.grad-red::before {
   content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 15% 0%, rgba(255,99,99,0.45), transparent 45%),
-              radial-gradient(circle at 100% 30%, rgba(255,59,48,0.3), transparent 50%);
-  filter: blur(2px);
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 10% -10%, rgba(220,80,80,0.32), transparent 55%),
+    radial-gradient(ellipse 50% 50% at 95% 100%, rgba(160,40,60,0.28), transparent 50%);
   pointer-events: none;
 }
-.hero-card::after {
+/* Frosted glass shimmer strip across the top */
+.hero-card.grad-red::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 55%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+  z-index: 0; pointer-events: none;
+}
+.hero-card.grad-red .hero-label,
+.hero-card.grad-red .hero-value,
+.hero-card.grad-red .hero-sub { position: relative; z-index: 1; }
+
+/* Generic light shimmer for dark/primary variants too */
+.hero-card.grad-dark::after,
+.hero-card.grad-primary::after {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 85% -10%, rgba(255,255,255,0.18), transparent 55%);
+  background: radial-gradient(circle at 80% -15%, rgba(255,255,255,0.14), transparent 50%);
   pointer-events: none;
 }
-.hero-label { font-size: 13px; opacity: .72; font-weight: 600; margin-bottom: 6px; position: relative; z-index: 1; }
-.hero-value { font-size: 38px; font-weight: 800; letter-spacing: -1.2px; position: relative; z-index: 1; }
-.hero-sub { font-size: 13px; opacity: .65; margin-top: 6px; font-weight: 500; position: relative; z-index: 1; }
+
+.hero-label { font-size: 12.5px; opacity: .65; font-weight: 600; margin-bottom: 8px; position: relative; z-index: 1; letter-spacing: 0.3px; text-transform: uppercase; }
+.hero-value { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; position: relative; z-index: 1; }
+.hero-sub { font-size: 13px; opacity: .6; margin-top: 6px; font-weight: 500; position: relative; z-index: 1; }
+
+/* ═══════════════ LIQUID GLASS — GLOW BORDER ANIMATION ═══════════════ */
+/* A subtle animated gradient border on glass cards gives the
+   "Liquid Glass" iPhone-26 feel without being distracting.
+   Only applied to the main feature cards, not every card. */
+@keyframes glass-glow-spin {
+  0%   { --glow-angle: 0deg; }
+  100% { --glow-angle: 360deg; }
+}
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.glass-glow {
+  position: relative;
+  border-radius: var(--r-lg);
+  isolation: isolate;
+}
+.glass-glow::before {
+  content: '';
+  position: absolute; inset: -1px; border-radius: inherit; z-index: -1;
+  background: conic-gradient(
+    from var(--glow-angle),
+    transparent 0%,
+    rgba(255,255,255,0.18) 15%,
+    rgba(var(--glow-r,94),var(--glow-g,124),var(--glow-b,226),0.5) 30%,
+    rgba(255,255,255,0.12) 45%,
+    transparent 60%
+  );
+  animation: glass-glow-spin 6s linear infinite;
+}
+.glass-glow::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--surface); backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass)); z-index: -1;
+}
+/* Colour presets for the glow ring */
+.glass-glow.glow-blue  { --glow-r:0;   --glow-g:122; --glow-b:255; }
+.glass-glow.glow-green { --glow-r:52;  --glow-g:199; --glow-b:89; }
+.glass-glow.glow-rose  { --glow-r:255; --glow-g:59;  --glow-b:48; }
+
 
 .stat-card {
   border-radius: var(--r-md);
@@ -645,18 +707,29 @@ canvas { max-height: 230px; }
 .empty-text { font-size: 13.5px; font-weight: 500; line-height: 1.6; }
 
 /* ═══════════════ TOAST ═══════════════ */
+/* The toast uses a CSS animation for auto-dismiss so it works even when
+   JS timers are throttled (file downloads, background tabs, iOS Safari). */
+@keyframes toast-lifecycle {
+  0%   { opacity:0; transform:translateX(-50%) translateY(16px) scale(.96); }
+  12%  { opacity:1; transform:translateX(-50%) translateY(0)    scale(1); }
+  78%  { opacity:1; transform:translateX(-50%) translateY(0)    scale(1); }
+  100% { opacity:0; transform:translateX(-50%) translateY(8px)  scale(.97); }
+}
 .toast {
-  position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(80px);
+  position: fixed; left: 50%; bottom: 108px;
+  transform: translateX(-50%) translateY(16px);
   padding: 13px 22px; border-radius: var(--r-pill);
   font-size: 13.5px; font-weight: 700; z-index: 600;
-  transition: transform .35s cubic-bezier(.32,.72,0,1);
   pointer-events: none; color: white;
   background: rgba(28,28,30,0.92);
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow-lg);
+  opacity: 0; /* hidden by default */
 }
-.toast.show { transform: translateX(-50%) translateY(0); }
-@media (min-width: 860px) { .toast { bottom: 32px; } }
+.toast.toast-run {
+  animation: toast-lifecycle 2.8s cubic-bezier(.4,0,.2,1) forwards;
+}
+@media (min-width: 860px) { .toast { bottom: 36px; } }
 
 /* ═══════════════ BANNERS ═══════════════ */
 .banner { border-radius: var(--r-sm); padding: 12px 16px; font-size: 13px; font-weight: 600; margin-top: 12px; display: none; }
@@ -1172,7 +1245,7 @@ canvas { max-height: 230px; }
       </div>
 
       <div class="sh"><div class="sh-title" style="font-size:18px">收支走势</div></div>
-      <div class="card glass">
+      <div class="card glass glass-glow glow-blue">
         <div id="trendEmpty" class="empty-state" style="display:none">
           <div class="empty-icon-badge">📊</div>
           <div class="empty-text">导入数据后显示趋势图</div>
@@ -1180,18 +1253,21 @@ canvas { max-height: 230px; }
         <div class="chart-trend-wrap"><canvas id="trendChart"></canvas></div>
       </div>
 
-      <div class="grid-2" style="margin-top:14px">
-        <div class="card glass">
-          <div class="chart-title">支出分类</div>
-          <div class="chart-sub">各类别占比</div>
-          <div class="chart-pie-wrap"><canvas id="expensePieChart"></canvas></div>
-          <div class="legend-flow" id="expenseLegend"></div>
-        </div>
-        <div class="card glass">
-          <div class="chart-title">收入分类</div>
-          <div class="chart-sub">各类别占比</div>
-          <div class="chart-pie-wrap"><canvas id="incomePieChart"></canvas></div>
-          <div class="legend-flow" id="incomeLegend"></div>
+      <!-- Pie charts: hidden entirely when there's no data (controlled by JS via #pieSection) -->
+      <div id="pieSection" style="display:none;margin-top:14px">
+        <div class="grid-2">
+          <div class="card glass">
+            <div class="chart-title">支出分类</div>
+            <div class="chart-sub">各类别占比</div>
+            <div class="chart-pie-wrap"><canvas id="expensePieChart"></canvas></div>
+            <div class="legend-flow" id="expenseLegend"></div>
+          </div>
+          <div class="card glass">
+            <div class="chart-title">收入分类</div>
+            <div class="chart-sub">各类别占比</div>
+            <div class="chart-pie-wrap"><canvas id="incomePieChart"></canvas></div>
+            <div class="legend-flow" id="incomeLegend"></div>
+          </div>
         </div>
       </div>
 
@@ -1235,60 +1311,98 @@ canvas { max-height: 230px; }
       </div>
 
       <div class="sh"><div class="sh-title" style="font-size:18px">导入数据</div></div>
-      <div class="card glass">
-        <div class="chart-title">📂 上传 CSV / Numbers 导出文件</div>
-        <div class="chart-sub">支持 iOS Numbers 导出的 CSV，自动识别表头顺序</div>
-        <label class="card-flat" for="csvInput" style="display:block;border:1.5px dashed var(--separator-strong);text-align:center;padding:26px;cursor:pointer;border-radius:var(--r-md)">
-          <div style="font-size:32px;margin-bottom:8px">📁</div>
-          <div style="font-size:14.5px;font-weight:700;margin-bottom:3px">点击选择文件</div>
-          <div style="font-size:12px;color:var(--label-4)">或拖拽至此处</div>
-        </label>
-        <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSV(event)">
-        <div class="banner" id="dedupBanner"></div>
+
+      <!-- Import type selector tabs -->
+      <div class="segmented" style="margin-bottom:14px">
+        <button class="seg-pill active" id="importTabTx" onclick="switchImportTab('tx')">🧾 记账数据</button>
+        <button class="seg-pill" id="importTabAsset" onclick="switchImportTab('asset')">🏦 资产数据</button>
       </div>
 
-      <div class="card glass" style="margin-top:14px">
-        <div class="chart-title">✏️ 手动粘贴数据</div>
-        <div class="chart-sub">表头：时间 / 收支 / 类别 / 金额 / 备注（顺序任意，自动识别）</div>
-        <textarea class="textarea" id="pasteData" placeholder="粘贴 Numbers 表格内容到这里…"></textarea>
-        <div class="banner" id="dedupBanner2"></div>
-        <div class="flex-row gap-10" style="margin-top:12px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" onclick="parsePaste()">解析并导入</button>
-          <button class="btn btn-secondary btn-sm" onclick="loadSampleData()">载入示例数据</button>
-          <button class="btn btn-danger-text btn-sm" onclick="clearAllData()">清空全部数据</button>
+      <!-- ── TRANSACTION import ── -->
+      <div id="importPanelTx">
+        <div class="card glass">
+          <div class="chart-title">📂 上传记账 CSV</div>
+          <div class="chart-sub">表头：时间 / 收支 / 类别 / 金额 / 备注（顺序任意，自动识别）</div>
+          <label class="card-flat" for="csvInput" style="display:block;border:1.5px dashed var(--separator-strong);text-align:center;padding:22px;cursor:pointer;border-radius:var(--r-md)">
+            <div style="font-size:28px;margin-bottom:6px">📁</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:2px">点击或拖拽上传</div>
+            <div style="font-size:12px;color:var(--label-4)">.csv 或 .txt</div>
+          </label>
+          <input type="file" id="csvInput" accept=".csv,.txt" style="display:none" onchange="handleCSV(event)">
+          <div class="banner" id="dedupBanner"></div>
+        </div>
+        <div class="card glass" style="margin-top:12px">
+          <div class="chart-title">✏️ 手动粘贴记账数据</div>
+          <div class="chart-sub">从 Numbers 复制后粘贴，首行为表头自动识别</div>
+          <textarea class="textarea" id="pasteData" placeholder="粘贴数据到这里…"></textarea>
+          <div class="banner" id="dedupBanner2"></div>
+          <div class="flex-row gap-10" style="margin-top:12px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="parsePaste()">解析并导入</button>
+            <button class="btn btn-secondary btn-sm" onclick="loadSampleData()">载入示例数据</button>
+            <button class="btn btn-danger-text btn-sm" onclick="clearAllData()">清空记账数据</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ASSET import ── -->
+      <div id="importPanelAsset" style="display:none">
+        <div class="card glass">
+          <div class="chart-title">📂 上传资产 CSV</div>
+          <div class="chart-sub" style="margin-bottom:12px">
+            首行为表头：<strong>时间, 资产名称1, 资产名称2, …</strong><br>
+            每一行是一次快照记录，列代表各资产的金额
+          </div>
+          <div style="background:var(--surface-2);border-radius:var(--r-xs);padding:10px 14px;font-size:12px;color:var(--label-3);margin-bottom:12px;font-family:monospace;line-height:1.8">
+            时间, 招商存款, 沪深300基金, Tesla股票<br>
+            2026-01-01, 50000, 30000, 12000<br>
+            2026-02-01, 52000, 28500, 13200
+          </div>
+          <label class="card-flat" for="assetCsvInput" style="display:block;border:1.5px dashed var(--separator-strong);text-align:center;padding:22px;cursor:pointer;border-radius:var(--r-md)">
+            <div style="font-size:28px;margin-bottom:6px">📁</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:2px">点击或拖拽上传资产 CSV</div>
+            <div style="font-size:12px;color:var(--label-4)">.csv 格式</div>
+          </label>
+          <input type="file" id="assetCsvInput" accept=".csv" style="display:none" onchange="handleAssetCSV(event)">
+          <div class="banner" id="assetImportBanner"></div>
+          <div style="margin-top:12px;font-size:12px;color:var(--label-4)">
+            💡 导入后会把每一行作为一次资产快照写入历史记录，资产名称自动创建（若不存在）
+          </div>
         </div>
       </div>
 
       <div class="sh"><div class="sh-title" style="font-size:18px">导出数据</div></div>
-      <div class="card glass" style="margin-bottom:14px;border:1px solid rgba(255,159,10,0.25)">
-        <div class="flex-row gap-14" style="align-items:flex-start">
-          <div style="font-size:22px;flex-shrink:0">💾</div>
-          <div>
-            <div style="font-size:13.5px;font-weight:700;color:var(--amber)">数据保存在本设备浏览器中</div>
-            <div style="font-size:12px;color:var(--label-3);margin-top:4px;line-height:1.6;font-weight:500">
-              所有记账与资产数据存储在<strong>本浏览器的本地缓存（localStorage）</strong>，不会上传到云端。
-              清除浏览器数据、更换设备或长期不打开此页面，都可能导致数据丢失。
-              建议定期点击下方「导出为 JSON」做完整备份。
-            </div>
+      <div class="card glass" style="margin-bottom:12px;border:1px solid rgba(255,159,10,0.2)">
+        <div class="flex-row gap-12" style="align-items:flex-start">
+          <span style="font-size:20px;flex-shrink:0">💾</span>
+          <div style="font-size:12px;color:var(--label-3);line-height:1.65;font-weight:500">
+            数据保存在<strong>本设备浏览器缓存</strong>中，建议定期导出备份。清除浏览器数据或换设备会导致本地数据丢失。已登录云端用户数据已自动同步。
           </div>
         </div>
       </div>
       <div class="card glass">
-        <div class="chart-sub" style="margin-bottom:14px">将你的记账与资产数据导出，方便在其他工具中使用或备份</div>
+        <div class="chart-sub" style="margin-bottom:12px">选择要导出的数据类型</div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div class="export-option" onclick="exportData('csv')">
-            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(47,179,128,.16),rgba(6,182,164,.16))">📊</div>
+          <div class="export-option" onclick="exportData('tx-csv')">
+            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(0,122,255,.15),rgba(88,86,214,.15))">🧾</div>
             <div style="flex:1">
-              <div style="font-size:14px;font-weight:700">导出为 CSV</div>
-              <div style="font-size:11.5px;color:var(--label-4)">可直接导入 Excel / Numbers</div>
+              <div style="font-size:14px;font-weight:700">导出记账数据 CSV</div>
+              <div style="font-size:11.5px;color:var(--label-4)">所有收支记录，可导入 Numbers / Excel</div>
             </div>
             <span style="color:var(--label-4)">›</span>
           </div>
-          <div class="export-option" onclick="exportData('json')">
-            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(94,124,226,.16),rgba(139,110,240,.16))">🗂️</div>
+          <div class="export-option" onclick="exportData('asset-csv')">
+            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(52,199,89,.15),rgba(0,199,190,.15))">🏦</div>
             <div style="flex:1">
-              <div style="font-size:14px;font-weight:700">导出为 JSON</div>
-              <div style="font-size:11.5px;color:var(--label-4)">完整数据备份，含资产与历史快照</div>
+              <div style="font-size:14px;font-weight:700">导出资产数据 CSV</div>
+              <div style="font-size:11.5px;color:var(--label-4)">当前资产明细，时间快照格式</div>
+            </div>
+            <span style="color:var(--label-4)">›</span>
+          </div>
+          <div class="export-option" onclick="exportData('asset-history-csv')">
+            <div class="export-icon-badge" style="background:linear-gradient(135deg,rgba(175,82,222,.15),rgba(88,86,214,.15))">📈</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700">导出资产历史走势 CSV</div>
+              <div style="font-size:11.5px;color:var(--label-4)">所有历史快照，首行为资产名称</div>
             </div>
             <span style="color:var(--label-4)">›</span>
           </div>
@@ -1330,7 +1444,7 @@ canvas { max-height: 230px; }
           <button class="seg-pill" data-range="0" onclick="setTimelineRange(0,this)">全部</button>
         </div>
       </div>
-      <div class="card glass">
+      <div class="card glass glass-glow glow-green">
         <div id="timelineEmpty" class="empty-state" style="padding:30px 0">
           <div class="empty-icon-badge">📈</div>
           <div class="empty-text">更新资产金额后将自动记录时间点<br>积累数据后即可看到走势趋势</div>
@@ -1849,8 +1963,13 @@ function refreshOverview(){
   document.getElementById('heroSaveRate').textContent = saveRate!==null ? saveRate+'%' : '—';
 
   buildTrendChart(txs);
-  buildPie('expensePieChart', catTotals(txs,'支出'), 'expenseLegend');
-  buildPie('incomePieChart', catTotals(txs,'收入'), 'incomeLegend');
+  const expCats = catTotals(txs,'支出');
+  const incCats = catTotals(txs,'收入');
+  const hasPieData = Object.keys(expCats).some(k=>expCats[k]>0) || Object.keys(incCats).some(k=>incCats[k]>0);
+  const pieSection = document.getElementById('pieSection');
+  if(pieSection) pieSection.style.display = hasPieData ? '' : 'none';
+  buildPie('expensePieChart', expCats, 'expenseLegend');
+  buildPie('incomePieChart', incCats, 'incomeLegend');
   renderRecentTx(txs);
 }
 function periodLabel(){
@@ -2741,73 +2860,133 @@ function importData(parsed, bannerId, failedCount){
   setTimeout(()=>{ switchPage('overview'); }, 900);
 }
 
+// ── Import tab switching ──
+function switchImportTab(tab){
+  document.getElementById('importPanelTx').style.display    = tab==='tx'    ? '' : 'none';
+  document.getElementById('importPanelAsset').style.display = tab==='asset' ? '' : 'none';
+  document.getElementById('importTabTx').classList.toggle('active',    tab==='tx');
+  document.getElementById('importTabAsset').classList.toggle('active', tab==='asset');
+}
+
+// ── Asset CSV import ──
+// Expected: Row 0 = header: 时间, 资产名A, 资产名B, ...
+//           Row N = data:   2026-01-01, 50000, 30000, ...
+function handleAssetCSV(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => parseAssetCSV(ev.target.result);
+  reader.readAsText(file,'UTF-8');
+  e.target.value = '';
+}
+
+function parseAssetCSV(text){
+  text = text.replace(/^\uFEFF/,'');
+  const lines = text.trim().split(/\r\n|\n|\r/).map(l=>l.trim()).filter(Boolean);
+  if(lines.length < 2){
+    showBanner('assetImportBanner','⚠️ 文件内容为空','warn'); return;
+  }
+  const headers = splitCSVLine(lines[0]);
+  const assetNames = headers.slice(1).map(h=>h.trim()).filter(Boolean);
+  if(!assetNames.length){
+    showBanner('assetImportBanner','⚠️ 未找到资产列（第1列为时间，第2列起为资产名称）','warn'); return;
+  }
+
+  let snapshotCount=0, rowErrors=0;
+
+  lines.slice(1).forEach(line=>{
+    const cols = splitCSVLine(line);
+    const date = normalizeDate(cols[0]);
+    if(!date){ rowErrors++; return; }
+
+    const breakdown={};
+    let total=0;
+    assetNames.forEach((name,i)=>{
+      const raw = (cols[i+1]||'').replace(/[^\d.\-]/g,'');
+      const val = parseFloat(raw);
+      if(isNaN(val)||val<0) return;
+      let asset = assets.find(a=>a.name===name);
+      if(!asset){
+        asset={id:'a'+Date.now()+Math.random(), name, category:'其他投资', value:val, note:'', createdAt:new Date().toISOString()};
+        assets.push(asset);
+      }
+      asset.value=val;
+      breakdown[asset.id]=val;
+      total+=val;
+    });
+    assetHistory.push({ts: date+'T00:00:00.000Z', total, breakdown});
+    snapshotCount++;
+  });
+
+  // Sort chronologically, keep last snapshot per day
+  assetHistory.sort((a,b)=>a.ts.localeCompare(b.ts));
+  const dayMap={};
+  assetHistory.forEach(h=>{ dayMap[h.ts.slice(0,10)]=h; });
+  assetHistory = Object.values(dayMap).sort((a,b)=>a.ts.localeCompare(b.ts));
+
+  saveAssetsData();
+  localStorage.setItem('rdstr_asset_history', JSON.stringify(assetHistory));
+  if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
+
+  if(!snapshotCount){
+    showBanner('assetImportBanner',`⚠️ 未能解析任何有效行（${rowErrors} 行日期格式无法识别）`,'warn'); return;
+  }
+  showBanner('assetImportBanner', `✅ 导入 ${snapshotCount} 条快照，${assetNames.length} 项资产`+(rowErrors?` · ${rowErrors}行跳过`:''), 'ok');
+  showToast('✅ 资产数据已导入');
+  setTimeout(()=>switchPage('assets'), 900);
+}
+
+function showBanner(id, msg, type){
+  const el=document.getElementById(id); if(!el) return;
+  el.className='banner show '+(type==='ok'?'banner-ok':'banner-warn');
+  el.innerHTML=msg;
+}
+
+// ── Export ──
+function exportData(format){
+  const today=new Date();
+  const stamp=`${today.getFullYear()}${pad2(today.getMonth()+1)}${pad2(today.getDate())}`;
+
+  if(format==='tx-csv'){
+    if(!transactions.length){ showToast('⚠️ 暂无记账数据'); return; }
+    const rows=[['时间','收支','类别','金额','备注'].join(','),
+      ...[...transactions].sort((a,b)=>new Date(a.date)-new Date(b.date))
+        .map(t=>[t.date,t.type,t.category,t.amount,t.note||''].map(csvEscape).join(','))];
+    downloadFile(`Roadster_记账数据_${stamp}.csv`, '\uFEFF'+rows.join('\n'), 'text/csv;charset=utf-8');
+    showToast('✅ 记账数据已导出');
+
+  } else if(format==='asset-csv'){
+    if(!assets.length){ showToast('⚠️ 暂无资产数据'); return; }
+    const rows=[['资产名称','类别','当前金额','备注'].join(','),
+      ...assets.map(a=>[a.name,a.category,a.value,a.note||''].map(csvEscape).join(','))];
+    downloadFile(`Roadster_资产明细_${stamp}.csv`, '\uFEFF'+rows.join('\n'), 'text/csv;charset=utf-8');
+    showToast('✅ 资产明细已导出');
+
+  } else if(format==='asset-history-csv'){
+    if(!assetHistory.length){ showToast('⚠️ 暂无资产历史快照'); return; }
+    const idToName={};
+    assets.forEach(a=>{ idToName[a.id]=a.name; });
+    const allIds=[...new Set(assetHistory.flatMap(h=>Object.keys(h.breakdown||{})))];
+    const header=['时间',...allIds.map(id=>idToName[id]||id),'总资产'];
+    const rows=assetHistory.map(h=>{
+      const vals=allIds.map(id=>h.breakdown?.[id]??'');
+      return [h.ts.slice(0,10),...vals,h.total].map(csvEscape).join(',');
+    });
+    downloadFile(`Roadster_资产走势_${stamp}.csv`, '\uFEFF'+[header.join(','),...rows].join('\n'), 'text/csv;charset=utf-8');
+    showToast('✅ 资产走势已导出');
+  }
+}
+
 function clearAllData(){
   if(!confirm('确认清空所有交易记录？')) return;
-  transactions = [];
+  transactions=[];
   localStorage.setItem('rdstr_tx', JSON.stringify(transactions));
   if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
   showToast('🗑️ 已清空所有交易记录');
   refreshOverview();
 }
 
-// ═══════════════════════════════
-//  EXPORT
-// ═══════════════════════════════
-function downloadFile(filename, content, mime){
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
-}
-function csvEscape(v){
-  v = String(v ?? '');
-  if(/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
-  return v;
-}
-function exportData(format){
-  if(!transactions.length && !assets.length){
-    showToast('⚠️ 暂无数据可导出');
-    return;
-  }
-  const today = new Date();
-  const stamp = `${today.getFullYear()}${pad2(today.getMonth()+1)}${pad2(today.getDate())}`;
-
-  if(format==='csv'){
-    // Transactions CSV
-    const txHeader = ['时间','收支','类别','金额','备注'];
-    const txRows = [...transactions].sort((a,b)=>new Date(a.date)-new Date(b.date))
-      .map(t=>[t.date, t.type, t.category, t.amount, t.note||''].map(csvEscape).join(','));
-    const txCsv = '\uFEFF' + [txHeader.join(','), ...txRows].join('\n');
-    downloadFile(`Roadster_记账数据_${stamp}.csv`, txCsv, 'text/csv;charset=utf-8');
-
-    // Assets CSV (separate file, slight delay so both downloads fire)
-    if(assets.length){
-      setTimeout(()=>{
-        const assetHeader = ['资产名称','类别','金额','备注','创建时间'];
-        const assetRows = assets.map(a=>[a.name, a.category, a.value, a.note||'', a.createdAt||''].map(csvEscape).join(','));
-        const assetCsv = '\uFEFF' + [assetHeader.join(','), ...assetRows].join('\n');
-        downloadFile(`Roadster_资产数据_${stamp}.csv`, assetCsv, 'text/csv;charset=utf-8');
-      }, 400);
-    }
-    showToast('✅ CSV 已导出，请查看下载文件夹');
-  } else if(format==='json'){
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      app: 'Roadster · Personal Finance Copilot',
-      transactions,
-      assets,
-      assetHistory
-    };
-    downloadFile(`Roadster_完整备份_${stamp}.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
-    showToast('✅ 已导出完整数据备份');
-  }
-}
-
 function loadSampleData(){
-  document.getElementById('pasteData').value = `2025-01-05\t收入\t12000\t工资\t1月薪资
+  document.getElementById('pasteData').value=`2025-01-05\t收入\t12000\t工资\t1月薪资
 2025-01-08\t支出\t3200\t房租\t1月房租
 2025-01-10\t支出\t280\t餐饮\t聚餐
 2025-01-12\t支出\t99\t娱乐\tNetflix会员
@@ -2834,6 +3013,23 @@ function loadSampleData(){
   showToast('示例数据已填入，点击「解析并导入」');
 }
 
+// ═══════════════════════════════
+//  DOWNLOAD HELPER
+// ═══════════════════════════════
+function downloadFile(filename, content, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function csvEscape(v){
+  v = String(v ?? '');
+  if(/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+  return v;
+}
 // ═══════════════════════════════
 //  SHARED CHARTS
 // ═══════════════════════════════
@@ -3288,45 +3484,31 @@ function fmtDateShort(iso){
   return `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
 
-let toastTimer = null;
-let toastToken = 0;
+// ── Toast: use CSS animation for guaranteed auto-dismiss.
+// JS-side setTimeout is unreliable when the browser throttles timers
+// (background tabs, file download prompts, iOS Safari power-saving).
+// Instead we add a class that triggers a CSS keyframe animation with a
+// built-in hold+fade-out, and remove the class when the animation ends.
+// This works regardless of timer state because CSS animations run on the
+// compositor thread, not the JS event loop.
 function showToast(msg){
   const toastEl = document.getElementById('toast');
   if(!toastEl) return;
-
-  // Use an incrementing token instead of trusting a single setTimeout.
-  // Browsers throttle/delay timers on background tabs or during native UI
-  // interruptions (e.g. a file-download prompt triggered by exportData()),
-  // which can make a toast appear to "never disappear." A token guarantees
-  // that even a late-firing timer from a previous call can't incorrectly
-  // hide (or fail to hide) the *current* toast.
-  toastToken++;
-  const myToken = toastToken;
-
+  // Force restart: remove class, flush layout, then re-add
+  toastEl.classList.remove('toast-run');
   toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  if(toastTimer) clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(()=>{
-    if(myToken === toastToken){
-      toastEl.classList.remove('show');
-    }
-  }, 2400);
+  // A forced reflow (reading offsetWidth) is required to restart a CSS
+  // animation on the same element — without this the browser skips it.
+  void toastEl.offsetWidth;
+  toastEl.classList.add('toast-run');
 }
-
-// Safety net: if the tab was backgrounded (e.g. during a download) and timers
-// were throttled, force-hide any stale toast as soon as the tab regains focus.
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === 'visible'){
-    const toastEl = document.getElementById('toast');
-    if(toastEl && toastEl.classList.contains('show')){
-      // Give it a brief moment in case a toast was *just* triggered on focus,
-      // otherwise clear it — it's almost certainly stale.
-      setTimeout(()=>{
-        if(toastEl.classList.contains('show')) toastEl.classList.remove('show');
-      }, 2400);
-    }
-  }
+// Remove the animation class when it finishes so the element resets cleanly
+document.addEventListener('DOMContentLoaded', ()=>{
+  const toastEl = document.getElementById('toast');
+  if(!toastEl) return;
+  toastEl.addEventListener('animationend', ()=>{
+    toastEl.classList.remove('toast-run');
+  });
 });
 
 // ═══════════════════════════════
@@ -3335,6 +3517,68 @@ document.addEventListener('visibilitychange', ()=>{
 initTheme();
 applyI18n();
 refreshOverview();
+
+// ── URL Parameter Handler ──
+// Supports deep-link from iOS Shortcuts (Back Tap) or any external trigger.
+// URL format:  roadster.html?amount=121&note=山姆蓝莓&date=2026-06-23T17:25:00&type=支出
+// All parameters are optional. If 'amount' is present we auto-open the
+// quick-add panel with the fields pre-filled so the user only needs to
+// confirm the category and tap Save.
+(function handleUrlParams(){
+  const p = new URLSearchParams(window.location.search);
+  const amount = p.get('amount');
+  if(!amount) return; // no amount param → normal launch, do nothing
+
+  // Wait for DOM to be fully ready before opening the sheet
+  const openOnReady = () => {
+    // Pre-fill the keypad value
+    const numericAmount = parseFloat(amount.replace(/[^\d.]/g,''));
+    if(!isNaN(numericAmount) && numericAmount > 0){
+      keypadValue = String(numericAmount);
+    }
+
+    // Pre-fill optional note
+    const note = p.get('note') || p.get('备注') || '';
+    if(note) document.getElementById('txNote').value = note;
+
+    // Pre-fill date/time (ISO or YYYY-MM-DD both work)
+    const dateParam = p.get('date') || p.get('time');
+    if(dateParam){
+      // Normalise to datetime-local format (YYYY-MM-DDTHH:mm:ss)
+      const d = new Date(dateParam);
+      if(!isNaN(d)){
+        const localIso = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+        document.getElementById('txDate').value = localIso;
+      }
+    } else {
+      document.getElementById('txDate').value = nowAsDatetimeLocal();
+    }
+
+    // Pre-select expense/income type
+    const type = p.get('type') || '支出';
+    quickTxType = (type === '收入' || type === 'income') ? '收入' : '支出';
+    setTxType(quickTxType);
+
+    // Render keypad display
+    renderKeypadValue();
+
+    // Open the modal — user only needs to pick category + tap Save
+    document.getElementById('txModal').classList.add('open');
+
+    // Clean the URL so refreshing doesn't re-trigger the flow
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+
+    showToast('💡 已自动填入金额，选择类别后保存');
+  };
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', openOnReady);
+  } else {
+    // Small delay so charts and sheets have time to render first
+    setTimeout(openOnReady, 200);
+  }
+})();
 
 </script>
 <script type="module">
