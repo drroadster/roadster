@@ -2798,16 +2798,29 @@ function parseRowMapped(cols, idx){
 
 function normalizeDate(s){
   if(!s) return null;
-  s = String(s).trim();
+  s = String(s).trim().replace(/^"|"$/g,''); // strip surrounding quotes
   if(!s) return null;
 
+  // ── "7月 10, 2021" / "10月 10, 2021" — Chinese month + English day/year ──
+  // This is the format exported by Numbers (zh locale) for dates like Oct 10, 2021
+  const CN_MONTHS = {'1月':1,'2月':2,'3月':3,'4月':4,'5月':5,'6月':6,
+    '7月':7,'8月':8,'9月':9,'10月':10,'11月':11,'12月':12};
+  const cnM = s.match(/^(\d{1,2}月)\s+(\d{1,2}),?\s*(\d{4})$/);
+  if(cnM){
+    const month = CN_MONTHS[cnM[1]];
+    if(month) return `${cnM[3]}-${pad2(month)}-${pad2(cnM[2])}`;
+  }
+
+  // ── Standard Chinese: 2021年10月10日 ──
   let cn = s.replace(/年/,'-').replace(/月/,'-').replace(/日/,'').trim();
   let m = cn.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
   if(m) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
 
+  // ── ISO / YYYY-MM-DD ──
   m = s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
   if(m) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
 
+  // ── D/M/YY or D/M/YYYY ──
   m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
   if(m){
     let a=parseInt(m[1],10), b=parseInt(m[2],10), y=m[3];
@@ -2819,6 +2832,7 @@ function normalizeDate(s){
     if(month>=1 && month<=12 && day>=1 && day<=31) return `${y}-${pad2(month)}-${pad2(day)}`;
   }
 
+  // ── Fallback: let JS Date try (handles "Jun 10, 2026" etc.) ──
   const d = new Date(s);
   if(!isNaN(d.getTime())) return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
   return null;
@@ -2891,7 +2905,7 @@ function parseAssetCSV(text){
     showBanner('assetImportBanner','⚠️ 未找到资产列（第1列为时间，第2列起为资产名称）','warn'); return;
   }
 
-  let snapshotCount=0, rowErrors=0;
+  let snapshotCount=0, skippedEmpty=0, rowErrors=0;
 
   lines.slice(1).forEach(line=>{
     const cols = splitCSVLine(line);
@@ -2900,24 +2914,46 @@ function parseAssetCSV(text){
 
     const breakdown={};
     let total=0;
+    let hasAnyValue=false;
+
     assetNames.forEach((name,i)=>{
-      const raw = (cols[i+1]||'').replace(/[^\d.\-]/g,'');
-      const val = parseFloat(raw);
-      if(isNaN(val)||val<0) return;
+      const rawStr = (cols[i+1] || '').trim();
+      if(!rawStr) return; // empty cell → skip this asset for this snapshot
+
+      // Remove thousands-separator commas AND surrounding quotes.
+      // Numbers (zh) exports "290,149" (quoted with commas) which splitCSVLine
+      // already de-quotes, leaving "290,149" — the replace below strips the commas.
+      const cleaned = rawStr.replace(/,/g,'').replace(/[^\d.\-]/g,'');
+      const val = parseFloat(cleaned);
+      if(isNaN(val) || val < 0) return;
+
+      hasAnyValue = true;
       let asset = assets.find(a=>a.name===name);
       if(!asset){
-        asset={id:'a'+Date.now()+Math.random(), name, category:'其他投资', value:val, note:'', createdAt:new Date().toISOString()};
+        asset={
+          id:'a'+Date.now()+Math.random(),
+          name,
+          category: guessCategoryFromName(name),
+          value: val,
+          note:'',
+          createdAt: new Date().toISOString()
+        };
         assets.push(asset);
       }
-      asset.value=val;
-      breakdown[asset.id]=val;
-      total+=val;
+      asset.value = val;
+      breakdown[asset.id] = val;
+      total += val;
     });
+
+    // Skip rows that have a date but no asset values at all
+    // (e.g. the first 6 rows in the example file)
+    if(!hasAnyValue){ skippedEmpty++; return; }
+
     assetHistory.push({ts: date+'T00:00:00.000Z', total, breakdown});
     snapshotCount++;
   });
 
-  // Sort chronologically, keep last snapshot per day
+  // Sort chronologically; if the same date appears twice keep the last occurrence
   assetHistory.sort((a,b)=>a.ts.localeCompare(b.ts));
   const dayMap={};
   assetHistory.forEach(h=>{ dayMap[h.ts.slice(0,10)]=h; });
@@ -2928,11 +2964,28 @@ function parseAssetCSV(text){
   if(typeof window._rdstrAutoSync==='function') window._rdstrAutoSync();
 
   if(!snapshotCount){
-    showBanner('assetImportBanner',`⚠️ 未能解析任何有效行（${rowErrors} 行日期格式无法识别）`,'warn'); return;
+    const detail = rowErrors ? `${rowErrors} 行日期无法识别` : '所有行均为空';
+    showBanner('assetImportBanner',`⚠️ 未能导入任何数据（${detail}）`,'warn');
+    return;
   }
-  showBanner('assetImportBanner', `✅ 导入 ${snapshotCount} 条快照，${assetNames.length} 项资产`+(rowErrors?` · ${rowErrors}行跳过`:''), 'ok');
+
+  let msg = `✅ 成功导入 ${snapshotCount} 条快照，${assetNames.length} 项资产`;
+  if(skippedEmpty) msg += ` · 跳过 ${skippedEmpty} 条空行`;
+  if(rowErrors)    msg += ` · ${rowErrors} 行日期格式无法识别`;
+  showBanner('assetImportBanner', msg, 'ok');
   showToast('✅ 资产数据已导入');
   setTimeout(()=>switchPage('assets'), 900);
+}
+
+// Guess a sensible asset category from common English/Chinese asset names
+function guessCategoryFromName(name){
+  const n = name.toLowerCase();
+  if(/btc|eth|crypto|coin|usdt|bnb/.test(n)) return '加密货币';
+  if(/stock|equity|share|fund|基金|股票|etf/.test(n)) return '基金/股票';
+  if(/bank|存款|savings|alipay|weipay|wechat|支付宝|微信/.test(n)) return '现金/储蓄';
+  if(/house|home|property|房|地产/.test(n)) return '房产';
+  if(/car|vehicle|汽车|车/.test(n)) return '车辆';
+  return '其他投资';
 }
 
 function showBanner(id, msg, type){
